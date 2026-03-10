@@ -189,13 +189,15 @@ function playYaySfx(wild = false) {
   if (!audioUnlocked) {
     return;
   }
-  const seq = wild
-    ? [[784, 65], [988, 70], [1175, 82], [1319, 120]]
-    : [[784, 65], [988, 70], [1175, 95]];
+  const chirps = wild
+    ? [990, 1320, 1180, 1480, 1260, 1650, 1420, 1860]
+    : [990, 1320, 1180, 1480, 1260];
   let delay = 0;
-  seq.forEach(([freq, dur]) => {
-    setTimeout(() => playTone(freq, dur, 'square', 0.95), delay);
-    delay += Math.max(45, dur - 10);
+  chirps.forEach((freq, idx) => {
+    const dur = wild ? 85 : 70;
+    setTimeout(() => playTone(freq, dur, 'triangle', 0.85), delay);
+    setTimeout(() => playTone(freq * 0.5, 46, 'square', 0.35), delay + 12);
+    delay += idx % 2 === 0 ? 52 : 58;
   });
 }
 
@@ -358,6 +360,7 @@ function triggerConfetti(rank) {
       color: colors[Math.floor(Math.random() * colors.length)],
     });
   }
+  playYaySfx(wild);
 }
 
 function advanceConfetti() {
@@ -525,7 +528,6 @@ function step() {
     state.food = emptyCells(state.snake);
     if (!confettiHighTriggered && state.score > runStartHighScore) {
       triggerConfetti(1);
-      playYaySfx(true);
       confettiHighTriggered = true;
       statusLabel.textContent = 'NEW #1 HIGH SCORE!';
     } else if (
@@ -534,7 +536,6 @@ function step() {
       state.score <= runStartHighScore
     ) {
       triggerConfetti(3);
-      playYaySfx(false);
       confettiTop5Triggered = true;
       statusLabel.textContent = 'TOP 5 SCORE!';
     } else if (state.score > currentHighScore()) {
