@@ -1,9 +1,9 @@
 # SNAKE by CHRIS GOYETTE
 
-![Status](https://img.shields.io/badge/Status-Stable-79f2c0?style=for-the-badge)
-![Language](https://img.shields.io/badge/Language-Python-3b82f6?style=for-the-badge)
-![UI](https://img.shields.io/badge/UI-Tkinter-0b1020?style=for-the-badge)
-![Version](https://img.shields.io/badge/Version-v1.0.0-ffeb3b?style=for-the-badge)
+![Status](https://img.shields.io/badge/STATUS-STABLE-79f2c0?style=for-the-badge&labelColor=1b2550)
+![Language](https://img.shields.io/badge/LANGUAGE-PYTHON-4fc3f7?style=for-the-badge&labelColor=1b2550)
+![UI](https://img.shields.io/badge/UI-TKINTER-0b1020?style=for-the-badge&labelColor=1b2550)
+![Version](https://img.shields.io/badge/VERSION-v1.0.0-ffeb3b?style=for-the-badge&labelColor=1b2550)
 
 A polished retro-style Snake game built in Python with Tkinter, featuring a classic arcade loop, persistent top scores, high-score celebrations, and a custom themed UI.
 
