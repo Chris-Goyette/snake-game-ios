@@ -374,6 +374,7 @@ function handleTouchStart(event) {
   if (!event.changedTouches[0]) {
     return;
   }
+  event.preventDefault();
   const touch = event.changedTouches[0];
   touchStart = {
     x: touch.clientX,
@@ -381,10 +382,15 @@ function handleTouchStart(event) {
   };
 }
 
+function handleTouchMove(event) {
+  event.preventDefault();
+}
+
 function handleTouchEnd(event) {
   if (!touchStart || !event.changedTouches[0]) {
     return;
   }
+  event.preventDefault();
 
   const touch = event.changedTouches[0];
   const dx = touch.clientX - touchStart.x;
@@ -486,8 +492,9 @@ function attachControls() {
   pauseBtn.addEventListener('click', togglePause);
   resetBtn.addEventListener('click', resetScores);
 
-  canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
-  canvas.addEventListener('touchend', handleTouchEnd, { passive: true });
+  canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+  canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+  canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
   window.addEventListener('keydown', handleKeyDown);
   window.addEventListener('resize', fitCanvas);
 }
