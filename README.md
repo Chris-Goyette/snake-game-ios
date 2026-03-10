@@ -1,4 +1,9 @@
-﻿# SNAKE by CHRIS GOYETTE
+# SNAKE by CHRIS GOYETTE
+
+![Status](https://img.shields.io/badge/Status-Stable-79f2c0?style=for-the-badge)
+![Language](https://img.shields.io/badge/Language-Python-3b82f6?style=for-the-badge)
+![UI](https://img.shields.io/badge/UI-Tkinter-0b1020?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-v1.0.0-ffeb3b?style=for-the-badge)
 
 A polished retro-style Snake game built in Python with Tkinter, featuring a classic arcade loop, persistent top scores, high-score celebrations, and a custom themed UI.
 
@@ -97,9 +102,10 @@ python -m unittest -v tests.test_snake_logic
 
 ## Data Persistence
 
-The game stores leaderboard data locally:
+The game stores score data locally:
 
-- `top_scores.json` (created automatically after first saved leaderboard update)
+- `top_scores.json`
+- `high_score.txt`
 
 ---
 
@@ -136,16 +142,6 @@ Workflow highlights:
   - visual polish and interaction design
 
 The final result reflects rapid prototyping plus continuous polish through human-in-the-loop iteration.
-
----
-
-## Future Ideas
-
-- sound effects + music toggle
-- difficulty presets (speed ramps)
-- power-ups / obstacles mode
-- local profile selection
-- packaged executable build
 
 ---
 
