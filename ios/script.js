@@ -35,6 +35,11 @@ let topScores = [];
 let ticker = null;
 let touchStart = null;
 let gameOverAt = 0;
+let audioCtx = null;
+let audioMaster = null;
+let audioTimer = null;
+let currentTrack = 'none';
+let audioUnlocked = false;
 
 function syncCanvasStartButton() {
   if (!canvasStartBtn) {
@@ -47,6 +52,136 @@ function syncCanvasStartButton() {
     canvasStartBtn.classList.add('hidden');
     canvasStartBtn.style.display = 'none';
   }
+}
+
+function ensureAudio() {
+  if (audioCtx) {
+    return;
+  }
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) {
+    return;
+  }
+  audioCtx = new Ctx();
+  audioMaster = audioCtx.createGain();
+  audioMaster.gain.value = 0.045;
+  audioMaster.connect(audioCtx.destination);
+}
+
+async function unlockAudio() {
+  ensureAudio();
+  if (!audioCtx) {
+    return;
+  }
+  if (audioCtx.state !== 'running') {
+    try {
+      await audioCtx.resume();
+    } catch {
+      return;
+    }
+  }
+  audioUnlocked = true;
+  syncMusicState();
+}
+
+function stopTrack() {
+  if (audioTimer) {
+    clearInterval(audioTimer);
+    audioTimer = null;
+  }
+}
+
+function playTone(freq, durationMs, type = 'square', gain = 0.9) {
+  if (!audioCtx || !audioMaster || !audioUnlocked || !freq) {
+    return;
+  }
+  const osc = audioCtx.createOscillator();
+  const amp = audioCtx.createGain();
+  const now = audioCtx.currentTime;
+  const duration = durationMs / 1000;
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, now);
+  amp.gain.setValueAtTime(0.0001, now);
+  amp.gain.exponentialRampToValueAtTime(gain, now + 0.01);
+  amp.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+  osc.connect(amp);
+  amp.connect(audioMaster);
+  osc.start(now);
+  osc.stop(now + duration + 0.01);
+}
+
+function startLoopTrack(trackName, notes, bpm, wave = 'square') {
+  if (!audioUnlocked) {
+    return;
+  }
+  if (currentTrack === trackName) {
+    return;
+  }
+  stopTrack();
+  currentTrack = trackName;
+  const stepMs = Math.round((60000 / bpm) / 2);
+  let step = 0;
+  const tick = () => {
+    const note = notes[step % notes.length];
+    if (note > 0) {
+      playTone(note, Math.max(90, stepMs - 16), wave);
+    }
+    step += 1;
+  };
+  tick();
+  audioTimer = setInterval(tick, stepMs);
+}
+
+function playGameOverJingle() {
+  if (!audioUnlocked) {
+    return;
+  }
+  stopTrack();
+  currentTrack = 'gameover';
+  const seq = [
+    [659, 140],
+    [523, 140],
+    [392, 140],
+    [330, 260],
+    [262, 380],
+  ];
+  let delay = 0;
+  seq.forEach(([freq, dur]) => {
+    setTimeout(() => playTone(freq, dur, 'square', 1.0), delay);
+    delay += dur - 20;
+  });
+}
+
+function syncMusicState() {
+  if (!audioUnlocked) {
+    return;
+  }
+  if (gameOver) {
+    if (currentTrack !== 'gameover') {
+      playGameOverJingle();
+    }
+    return;
+  }
+  if (running && !paused) {
+    startLoopTrack(
+      'game',
+      [392, 0, 523, 0, 659, 523, 392, 0, 440, 0, 587, 0, 698, 587, 440, 0],
+      150,
+      'square'
+    );
+    return;
+  }
+  if (!running && !gameOver) {
+    startLoopTrack(
+      'menu',
+      [262, 330, 392, 523, 392, 330, 262, 0, 294, 349, 440, 587, 440, 349, 294, 0],
+      118,
+      'square'
+    );
+    return;
+  }
+  stopTrack();
+  currentTrack = 'none';
 }
 
 function toDirection(input) {
@@ -165,6 +300,7 @@ function emptyCells(occupied) {
 }
 
 function startGame() {
+  unlockAudio();
   if (ticker) {
     clearInterval(ticker);
   }
@@ -199,6 +335,7 @@ function startGame() {
     }
   }, TICK_MS);
 
+  syncMusicState();
   render();
 }
 
@@ -212,6 +349,7 @@ function endGame() {
   updateHud();
   submitTopScore(state.score);
   syncCanvasStartButton();
+  syncMusicState();
 }
 
 function returnToStartScreen() {
@@ -224,6 +362,7 @@ function returnToStartScreen() {
   statusLabel.textContent = 'Press Start to Play';
   updateHud();
   syncCanvasStartButton();
+  syncMusicState();
 }
 
 function step() {
@@ -545,6 +684,7 @@ function togglePause() {
   paused = !paused;
   pauseBtn.textContent = paused ? 'Resume' : 'Pause';
   statusLabel.textContent = paused ? 'PAUSED' : 'Running';
+  syncMusicState();
 }
 
 function resetScores() {
@@ -581,6 +721,16 @@ function attachControls() {
   document.addEventListener('touchmove', preventPagePan, { passive: false });
   window.addEventListener('keydown', handleKeyDown);
   window.addEventListener('resize', fitCanvas);
+
+  const unlockOnce = () => {
+    unlockAudio();
+    document.removeEventListener('pointerdown', unlockOnce);
+    document.removeEventListener('touchstart', unlockOnce);
+    document.removeEventListener('keydown', unlockOnce);
+  };
+  document.addEventListener('pointerdown', unlockOnce, { passive: true });
+  document.addEventListener('touchstart', unlockOnce, { passive: true });
+  document.addEventListener('keydown', unlockOnce);
 }
 
 function init() {
@@ -589,6 +739,7 @@ function init() {
   syncCanvasStartButton();
   attachControls();
   fitCanvas();
+  syncMusicState();
   render();
   renderLoop();
 }
