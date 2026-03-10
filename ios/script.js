@@ -38,6 +38,9 @@ let touchStart = null;
 let gameOverAt = 0;
 let audioCtx = null;
 let audioMaster = null;
+let audioMusicGain = null;
+let audioSfxGain = null;
+let audioCompressor = null;
 let audioTimer = null;
 let currentTrack = 'none';
 let audioUnlocked = false;
@@ -72,9 +75,25 @@ function ensureAudio() {
     return;
   }
   audioCtx = new Ctx();
+  audioCompressor = audioCtx.createDynamicsCompressor();
+  audioCompressor.threshold.setValueAtTime(-20, audioCtx.currentTime);
+  audioCompressor.knee.setValueAtTime(14, audioCtx.currentTime);
+  audioCompressor.ratio.setValueAtTime(8, audioCtx.currentTime);
+  audioCompressor.attack.setValueAtTime(0.003, audioCtx.currentTime);
+  audioCompressor.release.setValueAtTime(0.16, audioCtx.currentTime);
+
   audioMaster = audioCtx.createGain();
-  audioMaster.gain.value = audioMuted ? 0.00001 : 0.045;
-  audioMaster.connect(audioCtx.destination);
+  audioMaster.gain.value = audioMuted ? 0.00001 : 0.06;
+
+  audioMusicGain = audioCtx.createGain();
+  audioMusicGain.gain.value = 0.42;
+  audioSfxGain = audioCtx.createGain();
+  audioSfxGain.gain.value = 0.78;
+
+  audioMusicGain.connect(audioMaster);
+  audioSfxGain.connect(audioMaster);
+  audioMaster.connect(audioCompressor);
+  audioCompressor.connect(audioCtx.destination);
 }
 
 function syncMuteButton() {
@@ -107,7 +126,7 @@ function stopTrack() {
   }
 }
 
-function playTone(freq, durationMs, type = 'square', gain = 0.9) {
+function playTone(freq, durationMs, type = 'square', gain = 0.9, bus = 'sfx') {
   if (!audioCtx || !audioMaster || !audioUnlocked || !freq) {
     return;
   }
@@ -118,10 +137,16 @@ function playTone(freq, durationMs, type = 'square', gain = 0.9) {
   osc.type = type;
   osc.frequency.setValueAtTime(freq, now);
   amp.gain.setValueAtTime(0.0001, now);
-  amp.gain.exponentialRampToValueAtTime(gain, now + 0.01);
-  amp.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+  amp.gain.exponentialRampToValueAtTime(Math.max(0.08, gain), now + 0.014);
+  amp.gain.exponentialRampToValueAtTime(0.0001, now + Math.max(0.03, duration));
   osc.connect(amp);
-  amp.connect(audioMaster);
+  if (bus === 'music' && audioMusicGain) {
+    amp.connect(audioMusicGain);
+  } else if (audioSfxGain) {
+    amp.connect(audioSfxGain);
+  } else {
+    amp.connect(audioMaster);
+  }
   osc.start(now);
   osc.stop(now + duration + 0.01);
 }
@@ -140,7 +165,7 @@ function startLoopTrack(trackName, notes, bpm, wave = 'square') {
   const tick = () => {
     const note = notes[step % notes.length];
     if (note > 0) {
-      playTone(note, Math.max(90, stepMs - 16), wave);
+      playTone(note, Math.max(90, stepMs - 16), wave, 0.6, 'music');
     }
     step += 1;
   };
@@ -192,11 +217,18 @@ function playYaySfx(wild = false) {
   const chirps = wild
     ? [990, 1320, 1180, 1480, 1260, 1650, 1420, 1860]
     : [990, 1320, 1180, 1480, 1260];
+  if (audioCtx && audioMusicGain) {
+    const now = audioCtx.currentTime;
+    audioMusicGain.gain.cancelScheduledValues(now);
+    audioMusicGain.gain.setValueAtTime(audioMusicGain.gain.value, now);
+    audioMusicGain.gain.exponentialRampToValueAtTime(0.16, now + 0.02);
+    audioMusicGain.gain.exponentialRampToValueAtTime(0.42, now + (wild ? 0.5 : 0.36));
+  }
   let delay = 0;
   chirps.forEach((freq, idx) => {
     const dur = wild ? 85 : 70;
-    setTimeout(() => playTone(freq, dur, 'triangle', 0.85), delay);
-    setTimeout(() => playTone(freq * 0.5, 46, 'square', 0.35), delay + 12);
+    setTimeout(() => playTone(freq, dur, 'triangle', 0.95, 'sfx'), delay);
+    setTimeout(() => playTone(freq * 0.5, 46, 'square', 0.42, 'sfx'), delay + 12);
     delay += idx % 2 === 0 ? 52 : 58;
   });
 }
@@ -237,9 +269,14 @@ function setMuted(nextMuted) {
   audioMuted = nextMuted;
   ensureAudio();
   if (audioMaster) {
-    audioMaster.gain.value = audioMuted ? 0.00001 : 0.045;
+    audioMaster.gain.value = audioMuted ? 0.00001 : 0.06;
   }
   syncMuteButton();
+}
+
+function syncViewportHeight() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--app-vh', `${vh}px`);
 }
 
 function toDirection(input) {
@@ -856,7 +893,19 @@ function attachControls() {
   document.body.addEventListener('touchmove', preventPagePan, { passive: false });
   document.addEventListener('touchmove', preventPagePan, { passive: false });
   window.addEventListener('keydown', handleKeyDown);
-  window.addEventListener('resize', fitCanvas);
+  window.addEventListener('resize', () => {
+    syncViewportHeight();
+    fitCanvas();
+  });
+  window.addEventListener('orientationchange', () => {
+    syncViewportHeight();
+    fitCanvas();
+  });
+  window.addEventListener('pageshow', () => {
+    syncViewportHeight();
+    fitCanvas();
+    syncMusicState();
+  });
 
   const unlockOnce = () => {
     unlockAudio();
@@ -870,6 +919,7 @@ function attachControls() {
 }
 
 function init() {
+  syncViewportHeight();
   topScores = loadScores();
   updateHud();
   syncCanvasStartButton();
