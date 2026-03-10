@@ -3,6 +3,7 @@ const TICK_MS = 120;
 const STORAGE_KEY = 'snake_ios_top_scores_v1';
 const GAME_OVER_ANIM_MS = 5000;
 const GLOBAL_SCORES_TABLE = 'snake_scores';
+const USERNAME_MAX_LEN = 12;
 
 const theme = {
   background: '#0b1020',
@@ -55,6 +56,10 @@ let runTopFiveThreshold = 0;
 let confettiTop5Triggered = false;
 let confettiHighTriggered = false;
 let backendClient = null;
+
+function normalizePlayerName(name) {
+  return String(name || '').trim().slice(0, USERNAME_MAX_LEN).toUpperCase() || 'PLAYER';
+}
 
 function syncCanvasStartButton() {
   if (!canvasStartBtn) {
@@ -110,7 +115,7 @@ async function fetchGlobalTopScores() {
   }
   return data
     .map((entry) => ({
-      name: String(entry.name || 'PLAYER').trim().slice(0, 12).toUpperCase() || 'PLAYER',
+      name: normalizePlayerName(entry.name),
       score: Math.max(0, Math.floor(Number(entry.score) || 0)),
     }))
     .sort((a, b) => b.score - a.score)
@@ -421,7 +426,7 @@ function loadScores() {
         );
       })
       .map((entry) => ({
-        name: entry.name.trim().slice(0, 12) || 'PLAYER',
+        name: normalizePlayerName(entry.name),
         score: Math.max(0, Math.floor(entry.score)),
       }))
       .sort((a, b) => b.score - a.score)
@@ -471,11 +476,39 @@ async function submitTopScore(score) {
     return;
   }
 
-  let name = window.prompt('Top 5 Score!\nEnter username (max 12 chars):', 'PLAYER');
-  if (name === null) {
-    name = 'PLAYER';
+  let suggested = 'PLAYER';
+  let name = 'PLAYER';
+  while (true) {
+    const input = window.prompt(
+      `Top 5 Score!\nEnter username (max ${USERNAME_MAX_LEN} chars):`,
+      suggested
+    );
+    if (input === null) {
+      name = 'PLAYER';
+      break;
+    }
+    const trimmed = input.trim();
+    if (!trimmed) {
+      name = 'PLAYER';
+      break;
+    }
+    if (trimmed.length > USERNAME_MAX_LEN) {
+      const clipped = trimmed.slice(0, USERNAME_MAX_LEN).toUpperCase();
+      window.alert(
+        `Name too long. Leaderboard names are limited to ${USERNAME_MAX_LEN} characters.\nUse ${clipped} or enter a shorter name.`
+      );
+      suggested = clipped;
+      continue;
+    }
+    if (trimmed.length === USERNAME_MAX_LEN) {
+      window.alert(
+        `You reached the ${USERNAME_MAX_LEN}-character limit. This exact name will be saved.`
+      );
+    }
+    name = trimmed.toUpperCase();
+    break;
   }
-  name = name.trim().slice(0, 12).toUpperCase() || 'PLAYER';
+  name = normalizePlayerName(name);
 
   const existingIndex = topScores.findIndex((entry) => entry.name === name);
   if (existingIndex >= 0) {
