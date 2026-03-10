@@ -265,6 +265,23 @@ function syncMusicState() {
   currentTrack = 'none';
 }
 
+function forceMenuMusicStart() {
+  if (!audioUnlocked) {
+    return;
+  }
+  if (audioCtx && audioCtx.state !== 'running') {
+    audioCtx.resume().catch(() => {});
+  }
+  stopTrack();
+  currentTrack = 'none';
+  syncMusicState();
+  setTimeout(() => {
+    if (!running && !gameOver && !paused) {
+      syncMusicState();
+    }
+  }, 80);
+}
+
 function setMuted(nextMuted) {
   audioMuted = nextMuted;
   ensureAudio();
@@ -518,7 +535,7 @@ function returnToStartScreen() {
   statusLabel.textContent = 'Press Start to Play';
   updateHud();
   syncCanvasStartButton();
-  syncMusicState();
+  forceMenuMusicStart();
 }
 
 function step() {
