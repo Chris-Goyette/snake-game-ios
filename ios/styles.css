@@ -214,6 +214,14 @@ body {
   color: #bfc7d8;
 }
 
+.dpad .dpad-arrow:nth-child(2) {
+  margin-bottom: 8px;
+}
+
+.dpad .dpad-arrow:nth-child(8) {
+  margin-top: 8px;
+}
+
 @media (pointer: coarse) {
   .action-row {
     gap: 10px;
