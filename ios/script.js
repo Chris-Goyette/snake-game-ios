@@ -18,7 +18,7 @@ const statusLabel = document.getElementById('status');
 const leaderboardEl = document.getElementById('leaderboard');
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
-const startBtn = document.getElementById('startBtn');
+const centerStartBtn = document.getElementById('centerStartBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const restartBtn = document.getElementById('restartBtn');
 const resetBtn = document.getElementById('resetBtn');
@@ -32,6 +32,23 @@ let paused = false;
 let topScores = [];
 let ticker = null;
 let touchStart = null;
+
+function syncCenterStartButton() {
+  if (!centerStartBtn) {
+    return;
+  }
+  if (!state && !running && !gameOver) {
+    centerStartBtn.textContent = 'START GAME';
+    centerStartBtn.classList.remove('hidden');
+    return;
+  }
+  if (paused) {
+    centerStartBtn.textContent = 'RESUME';
+    centerStartBtn.classList.remove('hidden');
+    return;
+  }
+  centerStartBtn.classList.add('hidden');
+}
 
 function toDirection(input) {
   switch (input) {
@@ -191,6 +208,7 @@ function startGame() {
   pauseBtn.textContent = 'Pause';
   statusLabel.textContent = 'Use swipe to steer';
   updateHud();
+  syncCenterStartButton();
 
   ticker = setInterval(() => {
     if (running && !paused && !gameOver) {
@@ -207,6 +225,7 @@ function endGame() {
   pauseBtn.textContent = 'Pause';
   statusLabel.textContent = 'Game Over';
   updateHud();
+  syncCenterStartButton();
   submitTopScore(state.score);
 }
 
@@ -342,6 +361,15 @@ function drawGameOver() {
   ctx.fillText('GAME SAVED', boardPx / 2, boardPx / 2 + 18);
 }
 
+function drawPausedOverlay() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.66)';
+  ctx.fillRect(0, 0, boardPx, boardPx);
+  ctx.fillStyle = theme.accent;
+  ctx.font = `bold ${Math.round(boardPx * 0.075)}px Courier New`;
+  ctx.textAlign = 'center';
+  ctx.fillText('PAUSED', boardPx / 2, boardPx / 2 - 8);
+}
+
 function render() {
   drawGrid();
 
@@ -354,6 +382,10 @@ function render() {
   state.snake.forEach((segment, index) => {
     drawCell(segment, index === 0 ? theme.snakeHead : theme.snakeBody);
   });
+
+  if (paused && !gameOver) {
+    drawPausedOverlay();
+  }
 
   if (gameOver) {
     drawGameOver();
@@ -417,10 +449,6 @@ function handleTouchEnd(event) {
     ? (dx > 0 ? 'right' : 'left')
     : (dy > 0 ? 'down' : 'up');
 
-  if (!state && !running && !gameOver) {
-    startGame();
-  }
-
   setDirection(swipeDirection);
 }
 
@@ -473,7 +501,8 @@ function togglePause() {
   }
   paused = !paused;
   pauseBtn.textContent = paused ? 'Resume' : 'Pause';
-  statusLabel.textContent = paused ? 'Paused' : 'Running';
+  statusLabel.textContent = paused ? 'PAUSED' : 'Running';
+  syncCenterStartButton();
 }
 
 function resetScores() {
@@ -497,7 +526,15 @@ function fitCanvas() {
 }
 
 function attachControls() {
-  startBtn.addEventListener('click', startGame);
+  centerStartBtn.addEventListener('click', () => {
+    if (!state && !running && !gameOver) {
+      startGame();
+      return;
+    }
+    if (paused) {
+      togglePause();
+    }
+  });
   restartBtn.addEventListener('click', startGame);
   pauseBtn.addEventListener('click', togglePause);
   resetBtn.addEventListener('click', resetScores);
@@ -516,6 +553,7 @@ function init() {
   topScores = loadScores();
   renderLeaderboard();
   updateHud();
+  syncCenterStartButton();
   attachControls();
   fitCanvas();
   render();

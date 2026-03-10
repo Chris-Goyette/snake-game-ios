@@ -82,6 +82,25 @@ body {
   display: block;
 }
 
+.center-start {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--head);
+  border-radius: 10px;
+  padding: 14px 18px;
+  font: 700 15px/1 "Courier New", Courier, monospace;
+  background: rgba(16, 32, 71, 0.95);
+  color: var(--accent);
+  cursor: pointer;
+  z-index: 3;
+}
+
+.center-start.hidden {
+  display: none;
+}
+
 .overlay {
   position: absolute;
   inset: 0;
@@ -101,7 +120,7 @@ body {
 
 .action-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-top: 10px;
 }
