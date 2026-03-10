@@ -42,6 +42,7 @@ let audioMusicGain = null;
 let audioSfxGain = null;
 let audioCompressor = null;
 let audioTimer = null;
+let audioRecoveryTimer = null;
 let currentTrack = 'none';
 let audioUnlocked = false;
 let audioMuted = false;
@@ -269,17 +270,37 @@ function forceMenuMusicStart() {
   if (!audioUnlocked) {
     return;
   }
-  if (audioCtx && audioCtx.state !== 'running') {
-    audioCtx.resume().catch(() => {});
+  if (audioRecoveryTimer) {
+    clearInterval(audioRecoveryTimer);
+    audioRecoveryTimer = null;
   }
   stopTrack();
   currentTrack = 'none';
-  syncMusicState();
-  setTimeout(() => {
+
+  let attempts = 0;
+  const tryStart = () => {
+    attempts += 1;
+    if (audioCtx && audioCtx.state !== 'running') {
+      audioCtx.resume().catch(() => {});
+    }
     if (!running && !gameOver && !paused) {
       syncMusicState();
+      if (currentTrack === 'menu') {
+        if (audioRecoveryTimer) {
+          clearInterval(audioRecoveryTimer);
+          audioRecoveryTimer = null;
+        }
+        return;
+      }
     }
-  }, 80);
+    if (attempts >= 20 && audioRecoveryTimer) {
+      clearInterval(audioRecoveryTimer);
+      audioRecoveryTimer = null;
+    }
+  };
+
+  tryStart();
+  audioRecoveryTimer = setInterval(tryStart, 150);
 }
 
 function setMuted(nextMuted) {
