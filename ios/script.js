@@ -43,6 +43,8 @@ let currentTrack = 'none';
 let audioUnlocked = false;
 let audioMuted = false;
 let pendingTopScore = null;
+let confetti = [];
+let confettiFrames = 0;
 
 function syncCanvasStartButton() {
   if (!canvasStartBtn) {
@@ -319,7 +321,63 @@ function submitTopScore(score) {
   topScores = topScores.sort((a, b) => b.score - a.score).slice(0, 5);
   saveScores();
   updateHud();
+  const rank = topScores.findIndex((entry) => entry.name === name) + 1;
+  if (rank === 1) {
+    triggerConfetti(1);
+  } else if (rank >= 2 && rank <= 5) {
+    triggerConfetti(rank);
+  }
   syncCanvasStartButton();
+}
+
+function triggerConfetti(rank) {
+  const wild = rank === 1;
+  const pieces = wild ? 110 : 52;
+  confettiFrames = wild ? 210 : 130;
+  const colors = ['#ff5f5f', '#ffeb3b', '#79f2c0', '#4fc3f7', '#ff9f43', '#c084fc'];
+  for (let i = 0; i < pieces; i += 1) {
+    confetti.push({
+      x: Math.random() * boardPx,
+      y: Math.random() * (boardPx * 0.25),
+      vx: (Math.random() - 0.5) * (wild ? 6.2 : 4.2),
+      vy: Math.random() * (wild ? 3.2 : 2.2) + 0.5,
+      size: Math.random() * (wild ? 6 : 4) + 2,
+      life: Math.floor(Math.random() * (wild ? 80 : 50)) + (wild ? 70 : 50),
+      color: colors[Math.floor(Math.random() * colors.length)],
+    });
+  }
+}
+
+function advanceConfetti() {
+  if (confettiFrames > 0) {
+    confettiFrames -= 1;
+  }
+  if (!confetti.length) {
+    return;
+  }
+  const next = [];
+  for (let i = 0; i < confetti.length; i += 1) {
+    const p = confetti[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.14;
+    p.life -= 1;
+    if (p.life > 0 && p.y < boardPx + 24) {
+      next.push(p);
+    }
+  }
+  confetti = next;
+}
+
+function drawConfetti() {
+  if (!confetti.length) {
+    return;
+  }
+  for (let i = 0; i < confetti.length; i += 1) {
+    const p = confetti[i];
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y, p.size, p.size);
+  }
 }
 
 function emptyCells(occupied) {
@@ -363,6 +421,8 @@ function startGame() {
   gameOver = false;
   paused = false;
   gameOverAt = 0;
+  confetti = [];
+  confettiFrames = 0;
   pauseBtn.textContent = 'Pause';
   statusLabel.textContent = 'Swipe in control pad to steer';
   updateHud();
@@ -608,6 +668,8 @@ function render() {
   if (gameOver) {
     drawGameOver(Date.now() - gameOverAt);
   }
+
+  drawConfetti();
 }
 
 function handleStartEnd() {
@@ -623,6 +685,7 @@ function renderLoop() {
     }
     returnToStartScreen();
   }
+  advanceConfetti();
   render();
   requestAnimationFrame(renderLoop);
 }
