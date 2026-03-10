@@ -171,9 +171,9 @@ body {
   background: #071127;
   border: 2px solid #143366;
   border-radius: 10px;
-  padding: 12px;
+  padding: 18px;
   text-align: center;
-  min-height: 170px;
+  min-height: 190px;
   flex: 1 1 auto;
   display: grid;
   align-content: center;
@@ -183,19 +183,20 @@ body {
 
 .dpad {
   margin: 0 auto;
-  width: min(240px, 72%);
+  width: min(270px, 82%);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0;
+  column-gap: 10px;
+  row-gap: 12px;
   align-items: center;
   justify-items: center;
 }
 
 .dpad-arrow,
 .dpad-center {
-  width: 64px;
-  height: 64px;
-  border-radius: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
   display: grid;
   place-items: center;
   border: 1px solid #2a2a2a;
@@ -214,14 +215,6 @@ body {
   color: #bfc7d8;
 }
 
-.dpad .dpad-arrow:nth-child(2) {
-  margin-bottom: 8px;
-}
-
-.dpad .dpad-arrow:nth-child(8) {
-  margin-top: 8px;
-}
-
 @media (pointer: coarse) {
   .action-row {
     gap: 10px;
@@ -232,6 +225,6 @@ body {
   }
 
   .swipe-zone {
-    min-height: 190px;
+    min-height: 210px;
   }
 }
