@@ -9,7 +9,7 @@
     <title>Snake by Chris Goyette</title>
     <meta name="description" content="Retro-style Snake game, optimized for iPhone." />
     <link rel="manifest" href="manifest.json" />
-    <link rel="stylesheet" href="styles.css?v=2" />
+    <link rel="stylesheet" href="styles.css?v=3" />
   </head>
   <body>
     <main class="screen">
@@ -35,12 +35,22 @@
         </section>
 
         <section id="swipeZone" class="swipe-zone" aria-label="Swipe control zone">
-          <p class="swipe-hint">SWIPE HERE</p>
-          <p class="swipe-arrows">← ↑ ↓ →</p>
+          <p class="swipe-hint">SWIPE</p>
+          <div class="dpad" aria-hidden="true">
+            <span></span>
+            <span class="dpad-arrow">↑</span>
+            <span></span>
+            <span class="dpad-arrow">←</span>
+            <span class="dpad-center">•</span>
+            <span class="dpad-arrow">→</span>
+            <span></span>
+            <span class="dpad-arrow">↓</span>
+            <span></span>
+          </div>
         </section>
       </div>
     </main>
 
-    <script src="script.js?v=13"></script>
+    <script src="script.js?v=14"></script>
   </body>
 </html>

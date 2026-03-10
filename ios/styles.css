@@ -189,11 +189,36 @@ body {
   color: var(--accent);
 }
 
-.swipe-arrows {
-  margin: 0;
+.dpad {
+  margin: 0 auto;
+  width: min(180px, 56%);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  align-items: center;
+  justify-items: center;
+}
+
+.dpad-arrow,
+.dpad-center {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #143366;
+  background: #0b1938;
   color: var(--head);
+  font-weight: 700;
+}
+
+.dpad-arrow {
   font-size: 24px;
-  letter-spacing: 8px;
+}
+
+.dpad-center {
+  font-size: 26px;
+  color: var(--accent);
 }
 
 @media (pointer: coarse) {
