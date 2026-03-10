@@ -22,6 +22,7 @@ const startBtn = document.getElementById('startBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const restartBtn = document.getElementById('restartBtn');
 const resetBtn = document.getElementById('resetBtn');
+const card = document.querySelector('.card');
 
 let boardPx = 480;
 let state = null;
@@ -374,6 +375,9 @@ function handleTouchStart(event) {
   if (!event.changedTouches[0]) {
     return;
   }
+  if (event.target.closest && event.target.closest('.btn')) {
+    return;
+  }
   event.preventDefault();
   const touch = event.changedTouches[0];
   touchStart = {
@@ -492,9 +496,11 @@ function attachControls() {
   pauseBtn.addEventListener('click', togglePause);
   resetBtn.addEventListener('click', resetScores);
 
-  canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-  canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-  canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+  const touchArea = card || canvas;
+  touchArea.addEventListener('touchstart', handleTouchStart, { passive: false });
+  touchArea.addEventListener('touchmove', handleTouchMove, { passive: false });
+  touchArea.addEventListener('touchend', handleTouchEnd, { passive: false });
+  document.body.addEventListener('touchmove', handleTouchMove, { passive: false });
   window.addEventListener('keydown', handleKeyDown);
   window.addEventListener('resize', fitCanvas);
 }
