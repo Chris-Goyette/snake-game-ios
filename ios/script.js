@@ -45,6 +45,10 @@ let audioMuted = false;
 let pendingTopScore = null;
 let confetti = [];
 let confettiFrames = 0;
+let runStartHighScore = 0;
+let runTopFiveThreshold = 0;
+let confettiTop5Triggered = false;
+let confettiHighTriggered = false;
 
 function syncCanvasStartButton() {
   if (!canvasStartBtn) {
@@ -179,6 +183,20 @@ function playStartSfx() {
   playTone(523, 70, 'square', 0.95);
   setTimeout(() => playTone(659, 70, 'square', 0.95), 65);
   setTimeout(() => playTone(784, 95, 'square', 0.95), 130);
+}
+
+function playYaySfx(wild = false) {
+  if (!audioUnlocked) {
+    return;
+  }
+  const seq = wild
+    ? [[784, 65], [988, 70], [1175, 82], [1319, 120]]
+    : [[784, 65], [988, 70], [1175, 95]];
+  let delay = 0;
+  seq.forEach(([freq, dur]) => {
+    setTimeout(() => playTone(freq, dur, 'square', 0.95), delay);
+    delay += Math.max(45, dur - 10);
+  });
 }
 
 function syncMusicState() {
@@ -321,19 +339,13 @@ function submitTopScore(score) {
   topScores = topScores.sort((a, b) => b.score - a.score).slice(0, 5);
   saveScores();
   updateHud();
-  const rank = topScores.findIndex((entry) => entry.name === name) + 1;
-  if (rank === 1) {
-    triggerConfetti(1);
-  } else if (rank >= 2 && rank <= 5) {
-    triggerConfetti(rank);
-  }
   syncCanvasStartButton();
 }
 
 function triggerConfetti(rank) {
   const wild = rank === 1;
-  const pieces = wild ? 110 : 52;
-  confettiFrames = wild ? 210 : 130;
+  const pieces = wild ? 76 : 34;
+  confettiFrames = wild ? 95 : 65;
   const colors = ['#ff5f5f', '#ffeb3b', '#79f2c0', '#4fc3f7', '#ff9f43', '#c084fc'];
   for (let i = 0; i < pieces; i += 1) {
     confetti.push({
@@ -423,6 +435,10 @@ function startGame() {
   gameOverAt = 0;
   confetti = [];
   confettiFrames = 0;
+  runStartHighScore = currentHighScore();
+  runTopFiveThreshold = topScores.length < 5 ? 0 : topScores[topScores.length - 1].score;
+  confettiTop5Triggered = false;
+  confettiHighTriggered = false;
   pauseBtn.textContent = 'Pause';
   statusLabel.textContent = 'Swipe in control pad to steer';
   updateHud();
@@ -507,7 +523,21 @@ function step() {
     playMunchSfx();
     state.score += 1;
     state.food = emptyCells(state.snake);
-    if (state.score > currentHighScore()) {
+    if (!confettiHighTriggered && state.score > runStartHighScore) {
+      triggerConfetti(1);
+      playYaySfx(true);
+      confettiHighTriggered = true;
+      statusLabel.textContent = 'NEW #1 HIGH SCORE!';
+    } else if (
+      !confettiTop5Triggered &&
+      state.score > runTopFiveThreshold &&
+      state.score <= runStartHighScore
+    ) {
+      triggerConfetti(3);
+      playYaySfx(false);
+      confettiTop5Triggered = true;
+      statusLabel.textContent = 'TOP 5 SCORE!';
+    } else if (state.score > currentHighScore()) {
       statusLabel.textContent = 'New High Score';
     }
   }
