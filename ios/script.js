@@ -18,6 +18,7 @@ const highScoreLabel = document.getElementById('highScore');
 const statusLabel = document.getElementById('status');
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
+const canvasStartBtn = document.getElementById('canvasStartBtn');
 const startBtn = document.getElementById('startBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const restartBtn = document.getElementById('restartBtn');
@@ -34,6 +35,17 @@ let topScores = [];
 let ticker = null;
 let touchStart = null;
 let gameOverAt = 0;
+
+function syncCanvasStartButton() {
+  if (!canvasStartBtn) {
+    return;
+  }
+  if (!state && !running && !gameOver) {
+    canvasStartBtn.classList.remove('hidden');
+  } else {
+    canvasStartBtn.classList.add('hidden');
+  }
+}
 
 function toDirection(input) {
   switch (input) {
@@ -134,6 +146,7 @@ function submitTopScore(score) {
   topScores = topScores.sort((a, b) => b.score - a.score).slice(0, 5);
   saveScores();
   updateHud();
+  syncCanvasStartButton();
 }
 
 function emptyCells(occupied) {
@@ -196,6 +209,7 @@ function endGame() {
   statusLabel.textContent = 'Game Over...';
   updateHud();
   submitTopScore(state.score);
+  syncCanvasStartButton();
 }
 
 function returnToStartScreen() {
@@ -207,6 +221,7 @@ function returnToStartScreen() {
   pauseBtn.textContent = 'Pause';
   statusLabel.textContent = 'Press Start to Play';
   updateHud();
+  syncCanvasStartButton();
 }
 
 function step() {
@@ -313,16 +328,16 @@ function drawStartScreen() {
   ctx.fillStyle = '#ffffff';
   ctx.font = `bold ${Math.round(boardPx * 0.078)}px Courier New`;
   ctx.textAlign = 'center';
-  ctx.fillText('S N A K E', center, boardPx * 0.30);
+  ctx.fillText('S N A K E', center, boardPx * 0.24);
 
   ctx.fillStyle = theme.snakeHead;
   ctx.font = `bold ${Math.round(boardPx * 0.032)}px Courier New`;
-  ctx.fillText('by CHRIS GOYETTE', center, boardPx * 0.37);
+  ctx.fillText('by CHRIS GOYETTE', center, boardPx * 0.30);
 
   if (blink) {
     ctx.fillStyle = theme.accent;
     ctx.font = `bold ${Math.round(boardPx * 0.032)}px Courier New`;
-    ctx.fillText('PRESS START TO PLAY', center, boardPx * 0.45);
+    ctx.fillText('PRESS START TO PLAY', center, boardPx * 0.36);
   }
 
   drawStartLeaderboardPanel();
@@ -330,9 +345,9 @@ function drawStartScreen() {
 
 function drawStartLeaderboardPanel() {
   const panelW = boardPx * 0.86;
-  const panelH = boardPx * 0.28;
+  const panelH = boardPx * 0.31;
   const x0 = (boardPx - panelW) / 2;
-  const y0 = boardPx * 0.58;
+  const y0 = boardPx * 0.61;
   const x1 = x0 + panelW;
   const y1 = y0 + panelH;
 
@@ -343,22 +358,22 @@ function drawStartLeaderboardPanel() {
   ctx.strokeRect(x0, y0, panelW, panelH);
 
   ctx.fillStyle = theme.accent;
-  ctx.font = `bold ${Math.round(boardPx * 0.028)}px Courier New`;
+  ctx.font = `bold ${Math.round(boardPx * 0.034)}px Courier New`;
   ctx.textAlign = 'center';
-  ctx.fillText('TOP 5 LEADERBOARD', boardPx / 2, y0 + boardPx * 0.05);
+  ctx.fillText('TOP 5 LEADERBOARD', boardPx / 2, y0 + boardPx * 0.058);
 
   if (!topScores.length) {
     ctx.fillStyle = theme.text;
-    ctx.font = `${Math.round(boardPx * 0.028)}px Courier New`;
+    ctx.font = `${Math.round(boardPx * 0.032)}px Courier New`;
     ctx.fillText('NO SCORES YET', boardPx / 2, y0 + panelH * 0.62);
     return;
   }
 
   const visible = topScores.slice(0, 5);
   visible.forEach((entry, index) => {
-    const y = y0 + boardPx * 0.09 + index * boardPx * 0.038;
+    const y = y0 + boardPx * 0.11 + index * boardPx * 0.04;
     ctx.fillStyle = theme.text;
-    ctx.font = `${Math.round(boardPx * 0.024)}px Courier New`;
+    ctx.font = `${Math.round(boardPx * 0.03)}px Courier New`;
     ctx.textAlign = 'left';
     ctx.fillText(`${index + 1}. ${entry.name}`, x0 + 10, y);
     ctx.textAlign = 'right';
@@ -557,6 +572,7 @@ function fitCanvas() {
 
 function attachControls() {
   startBtn.addEventListener('click', startGame);
+  canvasStartBtn.addEventListener('click', startGame);
   restartBtn.addEventListener('click', startGame);
   pauseBtn.addEventListener('click', togglePause);
   resetBtn.addEventListener('click', resetScores);
@@ -574,6 +590,7 @@ function attachControls() {
 function init() {
   topScores = loadScores();
   updateHud();
+  syncCanvasStartButton();
   attachControls();
   fitCanvas();
   render();

@@ -88,6 +88,25 @@ body {
   display: block;
 }
 
+.canvas-start {
+  position: absolute;
+  left: 50%;
+  top: 53%;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--head);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font: 700 15px/1 "Courier New", Courier, monospace;
+  background: rgba(16, 32, 71, 0.95);
+  color: var(--accent);
+  cursor: pointer;
+  z-index: 3;
+}
+
+.canvas-start.hidden {
+  display: none;
+}
+
 .overlay {
   position: absolute;
   inset: 0;
