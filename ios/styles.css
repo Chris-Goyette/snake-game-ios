@@ -91,7 +91,7 @@ body {
 .canvas-start {
   position: absolute;
   left: 50%;
-  top: 47%;
+  top: 44%;
   transform: translate(-50%, -50%);
   border: 2px solid var(--head);
   border-radius: 10px;
@@ -101,10 +101,29 @@ body {
   color: var(--accent);
   cursor: pointer;
   z-index: 3;
+  animation: startPulse 1.1s steps(1, end) infinite;
 }
 
 .canvas-start.hidden {
   display: none;
+}
+
+@keyframes startPulse {
+  0% {
+    opacity: 1;
+    border-color: var(--head);
+    color: var(--accent);
+  }
+  50% {
+    opacity: 0.45;
+    border-color: var(--accent);
+    color: var(--head);
+  }
+  100% {
+    opacity: 1;
+    border-color: var(--head);
+    color: var(--accent);
+  }
 }
 
 .overlay {

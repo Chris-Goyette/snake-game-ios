@@ -323,7 +323,6 @@ function drawCell(cell, color) {
 
 function drawStartScreen() {
   const center = boardPx / 2;
-  const blink = Math.floor(Date.now() / 900) % 2 === 0;
 
   ctx.fillStyle = '#ffffff';
   ctx.font = `bold ${Math.round(boardPx * 0.078)}px Courier New`;
@@ -333,12 +332,6 @@ function drawStartScreen() {
   ctx.fillStyle = theme.snakeHead;
   ctx.font = `bold ${Math.round(boardPx * 0.032)}px Courier New`;
   ctx.fillText('by CHRIS GOYETTE', center, boardPx * 0.30);
-
-  if (blink) {
-    ctx.fillStyle = theme.accent;
-    ctx.font = `bold ${Math.round(boardPx * 0.032)}px Courier New`;
-    ctx.fillText('PRESS START TO PLAY', center, boardPx * 0.36);
-  }
 
   drawStartLeaderboardPanel();
 }
