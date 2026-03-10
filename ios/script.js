@@ -309,7 +309,7 @@ function drawCell(cell, color) {
 
 function drawStartScreen() {
   const center = boardPx / 2;
-  const blink = Math.floor(Date.now() / 800) % 2 === 0;
+  const blink = Math.floor(Date.now() / 1000) % 2 === 0;
   blinkFrame += 1;
 
   ctx.fillStyle = '#ffffff';
