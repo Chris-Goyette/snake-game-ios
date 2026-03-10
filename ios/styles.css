@@ -96,11 +96,6 @@ body {
   margin-top: 10px;
 }
 
-.action-row.compact {
-  margin-top: 8px;
-  grid-template-columns: repeat(4, 1fr);
-}
-
 .btn {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -122,34 +117,32 @@ body {
   border-color: #fdd95f;
 }
 
-.dir {
-  font-size: 18px;
-  line-height: 1;
-  padding: 12px 4px;
-}
-
 .scores {
   margin-top: 12px;
   background: #0e1630;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 8px 12px;
+  text-align: center;
 }
 
 .scores h2 {
   margin: 0 0 8px;
   font-size: 14px;
   color: var(--accent);
+  text-align: center;
 }
 
 #leaderboard {
   margin: 0;
-  padding-left: 18px;
+  padding: 0;
+  list-style: none;
   min-height: 124px;
 }
 
 #leaderboard li {
   margin: 4px 0;
+  text-align: center;
 }
 
 @media (pointer: coarse) {

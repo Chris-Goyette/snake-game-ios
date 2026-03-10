@@ -30,7 +30,6 @@ let gameOver = false;
 let paused = false;
 let topScores = [];
 let ticker = null;
-let blinkFrame = 0;
 let touchStart = null;
 
 function toDirection(input) {
@@ -189,7 +188,7 @@ function startGame() {
   gameOver = false;
   paused = false;
   pauseBtn.textContent = 'Pause';
-  statusLabel.textContent = 'Use swipe or buttons to steer';
+  statusLabel.textContent = 'Use swipe to steer';
   updateHud();
 
   ticker = setInterval(() => {
@@ -309,8 +308,7 @@ function drawCell(cell, color) {
 
 function drawStartScreen() {
   const center = boardPx / 2;
-  const blink = Math.floor(Date.now() / 1000) % 2 === 0;
-  blinkFrame += 1;
+  const blink = Math.floor(Date.now() / 900) % 2 === 0;
 
   ctx.fillStyle = '#ffffff';
   ctx.font = `bold ${Math.round(boardPx * 0.078)}px Courier New`;
@@ -324,44 +322,7 @@ function drawStartScreen() {
   if (blink) {
     ctx.fillStyle = theme.accent;
     ctx.font = `bold ${Math.round(boardPx * 0.032)}px Courier New`;
-    ctx.fillText('PRESS START OR SWIPE', center, boardPx * 0.45);
-  }
-
-  drawLeaderboardPanel();
-}
-
-function drawLeaderboardPanel() {
-  const x = boardPx * 0.07;
-  const y = boardPx * 0.55;
-  const w = boardPx * 0.86;
-  const h = boardPx * 0.32;
-
-  ctx.fillStyle = '#0e1630';
-  ctx.strokeStyle = theme.snakeHead;
-  ctx.lineWidth = 1;
-  ctx.fillRect(x, y, w, h);
-  ctx.strokeRect(x, y, w, h);
-
-  ctx.fillStyle = theme.accent;
-  ctx.font = `${Math.round(boardPx * 0.028)}px Courier New`;
-  ctx.textAlign = 'left';
-  ctx.fillText('TOP 5 LEADERBOARD', x + 8, y + Math.round(boardPx * 0.085));
-
-  if (!topScores.length) {
-    ctx.fillStyle = theme.text;
-    ctx.fillText('NO SCORES YET', x + 8, y + h * 0.63);
-    return;
-  }
-
-  for (let i = 0; i < Math.min(5, topScores.length); i += 1) {
-    const entry = topScores[i];
-    const yLine = y + Math.round(boardPx * 0.17) + i * Math.round(boardPx * 0.062);
-    ctx.fillStyle = theme.text;
-    ctx.fillText(`${i + 1}. ${entry.name}`, x + 8, yLine);
-    ctx.fillStyle = theme.snakeHead;
-    ctx.textAlign = 'right';
-    ctx.fillText(String(entry.score), x + w - 8, yLine);
-    ctx.textAlign = 'left';
+    ctx.fillText('PRESS START TO PLAY', center, boardPx * 0.45);
   }
 }
 
@@ -436,11 +397,15 @@ function handleTouchEnd(event) {
     return;
   }
 
-  if (absX > absY) {
-    setDirection(dx > 0 ? 'right' : 'left');
-  } else {
-    setDirection(dy > 0 ? 'down' : 'up');
+  const swipeDirection = absX > absY
+    ? (dx > 0 ? 'right' : 'left')
+    : (dy > 0 ? 'down' : 'up');
+
+  if (!state && !running && !gameOver) {
+    startGame();
   }
+
+  setDirection(swipeDirection);
 }
 
 function handleKeyDown(event) {
@@ -520,11 +485,6 @@ function attachControls() {
   restartBtn.addEventListener('click', startGame);
   pauseBtn.addEventListener('click', togglePause);
   resetBtn.addEventListener('click', resetScores);
-
-  document.querySelectorAll('[data-dir]').forEach((button) => {
-    const dir = button.getAttribute('data-dir');
-    button.addEventListener('click', () => setDirection(dir));
-  });
 
   canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
   canvas.addEventListener('touchend', handleTouchEnd, { passive: true });
