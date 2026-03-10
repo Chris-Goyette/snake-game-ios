@@ -212,7 +212,8 @@ body {
 }
 
 .dpad-center {
-  font-size: 34px;
+  font-size: 13px;
+  letter-spacing: 0.6px;
   color: #bfc7d8;
 }
 
