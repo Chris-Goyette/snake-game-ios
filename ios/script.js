@@ -340,9 +340,9 @@ function drawStartScreen() {
 
 function drawStartLeaderboardPanel() {
   const panelW = boardPx * 0.86;
-  const panelH = boardPx * 0.31;
+  const panelH = boardPx * 0.34;
   const x0 = (boardPx - panelW) / 2;
-  const y0 = boardPx * 0.61;
+  const y0 = boardPx * 0.58;
   const x1 = x0 + panelW;
   const y1 = y0 + panelH;
 
@@ -353,22 +353,22 @@ function drawStartLeaderboardPanel() {
   ctx.strokeRect(x0, y0, panelW, panelH);
 
   ctx.fillStyle = theme.accent;
-  ctx.font = `bold ${Math.round(boardPx * 0.034)}px Courier New`;
+  ctx.font = `bold ${Math.round(boardPx * 0.042)}px Courier New`;
   ctx.textAlign = 'center';
-  ctx.fillText('TOP 5 LEADERBOARD', boardPx / 2, y0 + boardPx * 0.058);
+  ctx.fillText('LEADERBOARD', boardPx / 2, y0 + boardPx * 0.07);
 
   if (!topScores.length) {
     ctx.fillStyle = theme.text;
-    ctx.font = `${Math.round(boardPx * 0.032)}px Courier New`;
+    ctx.font = `${Math.round(boardPx * 0.036)}px Courier New`;
     ctx.fillText('NO SCORES YET', boardPx / 2, y0 + panelH * 0.62);
     return;
   }
 
   const visible = topScores.slice(0, 5);
   visible.forEach((entry, index) => {
-    const y = y0 + boardPx * 0.11 + index * boardPx * 0.04;
+    const y = y0 + boardPx * 0.13 + index * boardPx * 0.043;
     ctx.fillStyle = theme.text;
-    ctx.font = `${Math.round(boardPx * 0.03)}px Courier New`;
+    ctx.font = `${Math.round(boardPx * 0.036)}px Courier New`;
     ctx.textAlign = 'left';
     ctx.fillText(`${index + 1}. ${entry.name}`, x0 + 10, y);
     ctx.textAlign = 'right';
@@ -413,6 +413,7 @@ function drawPausedOverlay() {
 }
 
 function render() {
+  syncCanvasStartButton();
   drawGrid();
 
   if (!state || (!running && !gameOver)) {
