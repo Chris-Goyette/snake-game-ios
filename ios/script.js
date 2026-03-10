@@ -1,7 +1,10 @@
 const BOARD_SIZE = 20;
 const TICK_MS = 120;
+const MIN_TICK_MS = 74;
+const SCORE_PER_LEVEL = 5;
 const STORAGE_KEY = 'snake_ios_top_scores_v1';
-const GAME_OVER_ANIM_MS = 5000;
+const GAME_OVER_ANIM_MS = 1800;
+const GAME_OVER_SKIP_MS = 700;
 const GLOBAL_SCORES_TABLE = 'snake_scores';
 const USERNAME_MAX_LEN = 12;
 
@@ -28,6 +31,11 @@ const resetBtn = document.getElementById('resetBtn');
 const muteBtn = document.getElementById('muteBtn');
 const swipeZone = document.getElementById('swipeZone');
 const card = document.querySelector('.card');
+const nameModal = document.getElementById('nameModal');
+const nameForm = document.getElementById('nameForm');
+const nameInput = document.getElementById('nameInput');
+const nameLimitMsg = document.getElementById('nameLimitMsg');
+const nameCancelBtn = document.getElementById('nameCancelBtn');
 
 let boardPx = 480;
 let state = null;
@@ -56,9 +64,99 @@ let runTopFiveThreshold = 0;
 let confettiTop5Triggered = false;
 let confettiHighTriggered = false;
 let backendClient = null;
+let activeTickMs = TICK_MS;
+let nameModalResolve = null;
 
 function normalizePlayerName(name) {
   return String(name || '').trim().slice(0, USERNAME_MAX_LEN).toUpperCase() || 'PLAYER';
+}
+
+function isNameModalOpen() {
+  return Boolean(nameModal && !nameModal.classList.contains('hidden'));
+}
+
+function currentLevel(score) {
+  return Math.floor(Math.max(0, score) / SCORE_PER_LEVEL) + 1;
+}
+
+function tickMsForScore(score) {
+  const level = currentLevel(score);
+  return Math.max(MIN_TICK_MS, TICK_MS - (level - 1) * 6);
+}
+
+function startTicker(ms) {
+  if (ticker) {
+    clearInterval(ticker);
+  }
+  activeTickMs = ms;
+  ticker = setInterval(() => {
+    if (running && !paused && !gameOver) {
+      step();
+    }
+  }, ms);
+}
+
+function syncActionButtons() {
+  if (!startBtn || !pauseBtn || !restartBtn || !resetBtn) {
+    return;
+  }
+  startBtn.disabled = running && !gameOver;
+  pauseBtn.disabled = !state || gameOver;
+  restartBtn.disabled = !state && !gameOver;
+  resetBtn.disabled = running;
+}
+
+function setNameLimitMessage() {
+  if (!nameInput || !nameLimitMsg) {
+    return;
+  }
+  const len = nameInput.value.trim().length;
+  nameLimitMsg.textContent = `${len}/${USERNAME_MAX_LEN}`;
+  nameLimitMsg.classList.toggle('at-limit', len >= USERNAME_MAX_LEN);
+  if (len >= USERNAME_MAX_LEN) {
+    nameLimitMsg.textContent = `${len}/${USERNAME_MAX_LEN} max reached`;
+  }
+}
+
+function sanitizeNameInputValue() {
+  if (!nameInput) {
+    return;
+  }
+  nameInput.value = nameInput.value.toUpperCase().slice(0, USERNAME_MAX_LEN);
+  setNameLimitMessage();
+}
+
+function closeNameModal(name) {
+  if (!nameModal || !nameModalResolve) {
+    return;
+  }
+  const resolve = nameModalResolve;
+  nameModalResolve = null;
+  nameModal.classList.add('hidden');
+  nameModal.setAttribute('aria-hidden', 'true');
+  resolve(normalizePlayerName(name));
+}
+
+function requestPlayerName(suggested = 'PLAYER') {
+  if (!nameModal || !nameInput || !nameForm) {
+    const fallback = window.prompt(
+      `Top 5 Score!\nEnter username (max ${USERNAME_MAX_LEN} chars):`,
+      suggested
+    );
+    return Promise.resolve(normalizePlayerName(fallback || 'PLAYER'));
+  }
+  if (nameModalResolve) {
+    closeNameModal(suggested);
+  }
+  return new Promise((resolve) => {
+    nameModalResolve = resolve;
+    nameModal.classList.remove('hidden');
+    nameModal.setAttribute('aria-hidden', 'false');
+    nameInput.value = normalizePlayerName(suggested);
+    sanitizeNameInputValue();
+    nameInput.focus();
+    nameInput.select();
+  });
 }
 
 function syncCanvasStartButton() {
@@ -476,39 +574,7 @@ async function submitTopScore(score) {
     return;
   }
 
-  let suggested = 'PLAYER';
-  let name = 'PLAYER';
-  while (true) {
-    const input = window.prompt(
-      `Top 5 Score!\nEnter username (max ${USERNAME_MAX_LEN} chars):`,
-      suggested
-    );
-    if (input === null) {
-      name = 'PLAYER';
-      break;
-    }
-    const trimmed = input.trim();
-    if (!trimmed) {
-      name = 'PLAYER';
-      break;
-    }
-    if (trimmed.length > USERNAME_MAX_LEN) {
-      const clipped = trimmed.slice(0, USERNAME_MAX_LEN).toUpperCase();
-      window.alert(
-        `Name too long. Leaderboard names are limited to ${USERNAME_MAX_LEN} characters.\nUse ${clipped} or enter a shorter name.`
-      );
-      suggested = clipped;
-      continue;
-    }
-    if (trimmed.length === USERNAME_MAX_LEN) {
-      window.alert(
-        `You reached the ${USERNAME_MAX_LEN}-character limit. This exact name will be saved.`
-      );
-    }
-    name = trimmed.toUpperCase();
-    break;
-  }
-  name = normalizePlayerName(name);
+  const name = await requestPlayerName('PLAYER');
 
   const existingIndex = topScores.findIndex((entry) => entry.name === name);
   if (existingIndex >= 0) {
@@ -616,6 +682,7 @@ function startGame() {
     snake: [head, body],
     direction,
     nextDirection: { ...direction },
+    directionQueue: [],
     food: emptyCells([head, body]),
     score: 0,
   };
@@ -634,18 +701,18 @@ function startGame() {
   statusLabel.textContent = 'Swipe in control pad to steer';
   updateHud();
   pendingTopScore = null;
-
-  ticker = setInterval(() => {
-    if (running && !paused && !gameOver) {
-      step();
-    }
-  }, TICK_MS);
+  startTicker(tickMsForScore(0));
+  syncActionButtons();
 
   syncMusicState();
   render();
 }
 
 function endGame() {
+  if (ticker) {
+    clearInterval(ticker);
+    ticker = null;
+  }
   running = false;
   gameOver = true;
   paused = false;
@@ -654,11 +721,16 @@ function endGame() {
   statusLabel.textContent = 'Game Over...';
   pendingTopScore = state ? state.score : null;
   updateHud();
+  syncActionButtons();
   syncCanvasStartButton();
   syncMusicState();
 }
 
 function returnToStartScreen() {
+  if (ticker) {
+    clearInterval(ticker);
+    ticker = null;
+  }
   state = null;
   running = false;
   gameOver = false;
@@ -668,9 +740,33 @@ function returnToStartScreen() {
   pauseBtn.textContent = 'Pause';
   statusLabel.textContent = 'Press Start to Play';
   updateHud();
+  syncActionButtons();
   syncCanvasStartButton();
   forceMenuMusicStart();
   void refreshTopScores();
+}
+
+function finishGameOverFlow() {
+  if (!gameOver) {
+    return;
+  }
+  if (pendingTopScore !== null) {
+    const scoreToSubmit = pendingTopScore;
+    pendingTopScore = null;
+    void submitTopScore(scoreToSubmit);
+  }
+  returnToStartScreen();
+}
+
+function trySkipGameOver() {
+  if (!gameOver || gameOverAt <= 0) {
+    return false;
+  }
+  if (Date.now() - gameOverAt < GAME_OVER_SKIP_MS) {
+    return false;
+  }
+  finishGameOverFlow();
+  return true;
 }
 
 function step() {
@@ -678,7 +774,11 @@ function step() {
     return;
   }
 
-  const dir = state.nextDirection || state.direction;
+  if (!Array.isArray(state.directionQueue)) {
+    state.directionQueue = [];
+  }
+  const queuedDir = state.directionQueue.length ? state.directionQueue.shift() : null;
+  const dir = queuedDir || state.nextDirection || state.direction;
   const nextHead = {
     x: state.snake[0].x + dir.x,
     y: state.snake[0].y + dir.y,
@@ -709,12 +809,17 @@ function step() {
 
   state.snake = nextSnake;
   state.direction = dir;
-  state.nextDirection = dir;
+  state.nextDirection = state.directionQueue.length ? state.directionQueue[0] : dir;
 
   if (grows) {
     playMunchSfx();
     state.score += 1;
     state.food = emptyCells(state.snake);
+    const nextTickMs = tickMsForScore(state.score);
+    if (nextTickMs !== activeTickMs) {
+      startTicker(nextTickMs);
+      statusLabel.textContent = `LEVEL ${currentLevel(state.score)} SPEED UP`;
+    }
     if (!confettiHighTriggered && state.score > runStartHighScore) {
       triggerConfetti(1);
       confettiHighTriggered = true;
@@ -744,8 +849,20 @@ function setDirection(input) {
   if (!requested) {
     return;
   }
-  if (!opposite(requested, state.direction)) {
-    state.nextDirection = requested;
+  if (!Array.isArray(state.directionQueue)) {
+    state.directionQueue = [];
+  }
+
+  const lastIntended = state.directionQueue.length
+    ? state.directionQueue[state.directionQueue.length - 1]
+    : state.direction;
+  if (opposite(requested, lastIntended)) {
+    return;
+  }
+  const duplicate = lastIntended.x === requested.x && lastIntended.y === requested.y;
+  if (!duplicate && state.directionQueue.length < 2) {
+    state.directionQueue.push(requested);
+    state.nextDirection = state.directionQueue[0];
   }
 }
 
@@ -855,7 +972,7 @@ function drawGameOver(elapsedMs) {
 
   ctx.fillStyle = theme.text;
   ctx.font = `bold ${Math.round(boardPx * 0.03)}px Courier New`;
-  ctx.fillText('SAVING SCORE...', boardPx / 2, centerY + 8);
+  ctx.fillText(elapsedMs >= GAME_OVER_SKIP_MS ? 'TAP TO CONTINUE' : 'GET READY...', boardPx / 2, centerY + 8);
 }
 
 function drawPausedOverlay() {
@@ -900,12 +1017,7 @@ function handleStartEnd() {
 
 function renderLoop() {
   if (gameOver && gameOverAt > 0 && Date.now() - gameOverAt >= GAME_OVER_ANIM_MS) {
-    if (pendingTopScore !== null) {
-      const scoreToSubmit = pendingTopScore;
-      pendingTopScore = null;
-      void submitTopScore(scoreToSubmit);
-    }
-    returnToStartScreen();
+    finishGameOverFlow();
   }
   advanceConfetti();
   render();
@@ -935,6 +1047,9 @@ function preventPagePan(event) {
 }
 
 function handleTouchEnd(event) {
+  if (trySkipGameOver()) {
+    return;
+  }
   if (!touchStart || !event.changedTouches[0]) {
     return;
   }
@@ -963,6 +1078,18 @@ function handleKeyDown(event) {
     return;
   }
 
+  if (isNameModalOpen()) {
+    if (event.key === 'Escape') {
+      closeNameModal('PLAYER');
+    }
+    return;
+  }
+
+  const lowered = event.key.toLowerCase();
+  if ((event.key === ' ' || lowered === 'enter') && trySkipGameOver()) {
+    return;
+  }
+
   if (!state && event.key === 'Enter') {
     startGame();
     return;
@@ -972,7 +1099,7 @@ function handleKeyDown(event) {
     return;
   }
 
-  switch (event.key.toLowerCase()) {
+  switch (lowered) {
     case 'arrowup':
     case 'w':
       setDirection('up');
@@ -1008,6 +1135,7 @@ function togglePause() {
   paused = !paused;
   pauseBtn.textContent = paused ? 'Resume' : 'Pause';
   statusLabel.textContent = paused ? 'PAUSED' : 'Running';
+  syncActionButtons();
   syncMusicState();
 }
 
@@ -1015,7 +1143,8 @@ function resetScores() {
   topScores = [];
   saveScores();
   updateHud();
-  statusLabel.textContent = 'Scores reset';
+  statusLabel.textContent = 'Local cache cleared';
+  void refreshTopScores();
 }
 
 function fitCanvas() {
@@ -1047,6 +1176,28 @@ function attachControls() {
   document.body.addEventListener('touchmove', preventPagePan, { passive: false });
   document.addEventListener('touchmove', preventPagePan, { passive: false });
   window.addEventListener('keydown', handleKeyDown);
+
+  if (nameInput) {
+    nameInput.addEventListener('input', sanitizeNameInputValue);
+  }
+  if (nameForm) {
+    nameForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      closeNameModal(nameInput ? nameInput.value : 'PLAYER');
+    });
+  }
+  if (nameCancelBtn) {
+    nameCancelBtn.addEventListener('click', () => {
+      closeNameModal('PLAYER');
+    });
+  }
+  if (nameModal) {
+    nameModal.addEventListener('click', (event) => {
+      if (event.target === nameModal) {
+        closeNameModal('PLAYER');
+      }
+    });
+  }
   window.addEventListener('resize', () => {
     syncViewportHeight();
     fitCanvas();
@@ -1080,6 +1231,7 @@ async function init() {
   syncCanvasStartButton();
   syncMuteButton();
   attachControls();
+  syncActionButtons();
   fitCanvas();
   syncMusicState();
   render();

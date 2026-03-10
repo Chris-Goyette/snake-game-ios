@@ -9,7 +9,7 @@
     <title>Snake by Chris Goyette</title>
     <meta name="description" content="Retro-style Snake game, optimized for iPhone." />
     <link rel="manifest" href="manifest.json" />
-    <link rel="stylesheet" href="styles.css?v=9" />
+    <link rel="stylesheet" href="styles.css?v=10" />
   </head>
   <body>
     <main class="screen">
@@ -20,7 +20,7 @@
           <button id="muteBtn" class="hud-btn" type="button">Sound On</button>
         </header>
 
-        <p id="status" class="status">Press Start to Play</p>
+        <p id="status" class="status" role="status" aria-live="polite">Press Start to Play</p>
 
         <div id="gameWrap" class="game-wrap">
           <canvas id="board" width="480" height="480" aria-label="Snake game board"></canvas>
@@ -29,10 +29,10 @@
         </div>
 
         <section class="action-row">
-          <button id="startBtn" class="btn">Start</button>
-          <button id="pauseBtn" class="btn">Pause</button>
-          <button id="restartBtn" class="btn">Restart</button>
-          <button id="resetBtn" class="btn">Reset Scores</button>
+          <button id="startBtn" class="btn btn-primary">Start</button>
+          <button id="pauseBtn" class="btn btn-secondary">Pause</button>
+          <button id="restartBtn" class="btn btn-secondary">Restart</button>
+          <button id="resetBtn" class="btn btn-danger">Clear Local</button>
         </section>
 
         <section id="swipeZone" class="swipe-zone" aria-label="Swipe control zone">
@@ -48,11 +48,33 @@
             <span></span>
           </div>
         </section>
+
+        <div id="nameModal" class="name-modal hidden" aria-hidden="true">
+          <form id="nameForm" class="name-modal-card" role="dialog" aria-modal="true" aria-labelledby="nameModalTitle">
+            <h2 id="nameModalTitle">Top 5 Score</h2>
+            <p class="name-modal-copy">Enter username (max 12 chars)</p>
+            <input
+              id="nameInput"
+              class="name-input"
+              type="text"
+              maxlength="12"
+              autocapitalize="characters"
+              autocomplete="off"
+              autocorrect="off"
+              spellcheck="false"
+            />
+            <p id="nameLimitMsg" class="name-limit-msg">0/12</p>
+            <div class="name-modal-actions">
+              <button id="nameCancelBtn" class="btn btn-secondary" type="button">Use PLAYER</button>
+              <button class="btn btn-primary" type="submit">Save Score</button>
+            </div>
+          </form>
+        </div>
       </div>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js?v=1"></script>
-    <script src="script.js?v=32"></script>
+    <script src="script.js?v=33"></script>
   </body>
 </html>
