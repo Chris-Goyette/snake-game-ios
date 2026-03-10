@@ -390,6 +390,12 @@ function handleTouchMove(event) {
   event.preventDefault();
 }
 
+function preventPagePan(event) {
+  if (event.cancelable) {
+    event.preventDefault();
+  }
+}
+
 function handleTouchEnd(event) {
   if (!touchStart || !event.changedTouches[0]) {
     return;
@@ -500,7 +506,8 @@ function attachControls() {
   touchArea.addEventListener('touchstart', handleTouchStart, { passive: false });
   touchArea.addEventListener('touchmove', handleTouchMove, { passive: false });
   touchArea.addEventListener('touchend', handleTouchEnd, { passive: false });
-  document.body.addEventListener('touchmove', handleTouchMove, { passive: false });
+  document.body.addEventListener('touchmove', preventPagePan, { passive: false });
+  document.addEventListener('touchmove', preventPagePan, { passive: false });
   window.addEventListener('keydown', handleKeyDown);
   window.addEventListener('resize', fitCanvas);
 }
