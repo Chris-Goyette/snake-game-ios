@@ -162,6 +162,23 @@ function playGameOverJingle() {
   });
 }
 
+function playMunchSfx() {
+  if (!audioUnlocked) {
+    return;
+  }
+  playTone(880, 70, 'square', 0.9);
+  setTimeout(() => playTone(1175, 60, 'square', 0.9), 55);
+}
+
+function playStartSfx() {
+  if (!audioUnlocked) {
+    return;
+  }
+  playTone(523, 70, 'square', 0.95);
+  setTimeout(() => playTone(659, 70, 'square', 0.95), 65);
+  setTimeout(() => playTone(784, 95, 'square', 0.95), 130);
+}
+
 function syncMusicState() {
   if (!audioUnlocked) {
     return;
@@ -319,7 +336,9 @@ function emptyCells(occupied) {
 }
 
 function startGame() {
-  unlockAudio();
+  unlockAudio().then(() => {
+    playStartSfx();
+  });
   if (ticker) {
     clearInterval(ticker);
   }
@@ -425,6 +444,7 @@ function step() {
   state.nextDirection = dir;
 
   if (grows) {
+    playMunchSfx();
     state.score += 1;
     state.food = emptyCells(state.snake);
     if (state.score > currentHighScore()) {
@@ -556,11 +576,6 @@ function drawGameOver(elapsedMs) {
   ctx.fillStyle = theme.text;
   ctx.font = `bold ${Math.round(boardPx * 0.03)}px Courier New`;
   ctx.fillText('SAVING SCORE...', boardPx / 2, centerY + 8);
-
-  const remaining = Math.max(0, Math.ceil((GAME_OVER_ANIM_MS - elapsedMs) / 1000));
-  ctx.fillStyle = theme.snakeHead;
-  ctx.font = `${Math.round(boardPx * 0.028)}px Courier New`;
-  ctx.fillText(`RETURNING TO START IN ${remaining}`, boardPx / 2, centerY + 38);
 }
 
 function drawPausedOverlay() {
