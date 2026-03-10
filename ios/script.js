@@ -344,7 +344,7 @@ function submitTopScore(score) {
 
 function triggerConfetti(rank) {
   const wild = rank === 1;
-  const pieces = wild ? 76 : 34;
+  const pieces = wild ? 228 : 34;
   confettiFrames = wild ? 95 : 65;
   const colors = ['#ff5f5f', '#ffeb3b', '#79f2c0', '#4fc3f7', '#ff9f43', '#c084fc'];
   for (let i = 0; i < pieces; i += 1) {
