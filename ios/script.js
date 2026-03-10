@@ -1,6 +1,7 @@
 const BOARD_SIZE = 20;
 const TICK_MS = 120;
 const STORAGE_KEY = 'snake_ios_top_scores_v1';
+const GAME_OVER_ANIM_MS = 5000;
 
 const theme = {
   background: '#0b1020',
@@ -15,13 +16,13 @@ const theme = {
 const scoreLabel = document.getElementById('score');
 const highScoreLabel = document.getElementById('highScore');
 const statusLabel = document.getElementById('status');
-const leaderboardEl = document.getElementById('leaderboard');
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 const centerStartBtn = document.getElementById('centerStartBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const restartBtn = document.getElementById('restartBtn');
 const resetBtn = document.getElementById('resetBtn');
+const swipeZone = document.getElementById('swipeZone');
 const card = document.querySelector('.card');
 
 let boardPx = 480;
@@ -32,6 +33,7 @@ let paused = false;
 let topScores = [];
 let ticker = null;
 let touchStart = null;
+let gameOverAt = 0;
 
 function syncCenterStartButton() {
   if (!centerStartBtn) {
@@ -45,6 +47,10 @@ function syncCenterStartButton() {
   if (paused) {
     centerStartBtn.textContent = 'RESUME';
     centerStartBtn.classList.remove('hidden');
+    return;
+  }
+  if (gameOver) {
+    centerStartBtn.classList.add('hidden');
     return;
   }
   centerStartBtn.classList.add('hidden');
@@ -106,22 +112,6 @@ function saveScores() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(topScores.slice(0, 5)));
 }
 
-function renderLeaderboard() {
-  leaderboardEl.innerHTML = '';
-  if (!topScores.length) {
-    const li = document.createElement('li');
-    li.textContent = 'NO SCORES YET';
-    leaderboardEl.appendChild(li);
-    return;
-  }
-
-  for (const entry of topScores) {
-    const li = document.createElement('li');
-    li.textContent = `${entry.name} — ${entry.score}`;
-    leaderboardEl.appendChild(li);
-  }
-}
-
 function currentHighScore() {
   return topScores[0]?.score ?? 0;
 }
@@ -164,7 +154,6 @@ function submitTopScore(score) {
 
   topScores = topScores.sort((a, b) => b.score - a.score).slice(0, 5);
   saveScores();
-  renderLeaderboard();
   updateHud();
 }
 
@@ -205,8 +194,9 @@ function startGame() {
   running = true;
   gameOver = false;
   paused = false;
+  gameOverAt = 0;
   pauseBtn.textContent = 'Pause';
-  statusLabel.textContent = 'Use swipe to steer';
+  statusLabel.textContent = 'Swipe in control pad to steer';
   updateHud();
   syncCenterStartButton();
 
@@ -222,11 +212,25 @@ function startGame() {
 function endGame() {
   running = false;
   gameOver = true;
+  paused = false;
+  gameOverAt = Date.now();
   pauseBtn.textContent = 'Pause';
-  statusLabel.textContent = 'Game Over';
+  statusLabel.textContent = 'Game Over...';
   updateHud();
   syncCenterStartButton();
   submitTopScore(state.score);
+}
+
+function returnToStartScreen() {
+  state = null;
+  running = false;
+  gameOver = false;
+  paused = false;
+  gameOverAt = 0;
+  pauseBtn.textContent = 'Pause';
+  statusLabel.textContent = 'Press Start to Play';
+  updateHud();
+  syncCenterStartButton();
 }
 
 function step() {
@@ -344,21 +348,73 @@ function drawStartScreen() {
     ctx.font = `bold ${Math.round(boardPx * 0.032)}px Courier New`;
     ctx.fillText('PRESS START TO PLAY', center, boardPx * 0.45);
   }
+
+  drawStartLeaderboardPanel();
 }
 
-function drawGameOver() {
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.66)';
-  ctx.fillRect(0, 0, boardPx, boardPx);
+function drawStartLeaderboardPanel() {
+  const panelW = boardPx * 0.86;
+  const panelH = boardPx * 0.28;
+  const x0 = (boardPx - panelW) / 2;
+  const y0 = boardPx * 0.58;
+  const x1 = x0 + panelW;
+  const y1 = y0 + panelH;
 
-  const phase = Math.floor(Date.now() / 120) % 2 === 0;
-  ctx.fillStyle = phase ? theme.food : theme.accent;
-  ctx.font = `bold ${Math.round(boardPx * 0.075)}px Courier New`;
+  ctx.fillStyle = '#0e1630';
+  ctx.strokeStyle = theme.snakeHead;
+  ctx.lineWidth = 1;
+  ctx.fillRect(x0, y0, panelW, panelH);
+  ctx.strokeRect(x0, y0, panelW, panelH);
+
+  ctx.fillStyle = theme.accent;
+  ctx.font = `bold ${Math.round(boardPx * 0.028)}px Courier New`;
   ctx.textAlign = 'center';
-  ctx.fillText('GAME OVER', boardPx / 2, boardPx / 2 - 12);
+  ctx.fillText('TOP 5 LEADERBOARD', boardPx / 2, y0 + boardPx * 0.05);
+
+  if (!topScores.length) {
+    ctx.fillStyle = theme.text;
+    ctx.font = `${Math.round(boardPx * 0.028)}px Courier New`;
+    ctx.fillText('NO SCORES YET', boardPx / 2, y0 + panelH * 0.62);
+    return;
+  }
+
+  const visible = topScores.slice(0, 5);
+  visible.forEach((entry, index) => {
+    const y = y0 + boardPx * 0.09 + index * boardPx * 0.038;
+    ctx.fillStyle = theme.text;
+    ctx.font = `${Math.round(boardPx * 0.024)}px Courier New`;
+    ctx.textAlign = 'left';
+    ctx.fillText(`${index + 1}. ${entry.name}`, x0 + 10, y);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = theme.snakeHead;
+    ctx.fillText(String(entry.score), x1 - 10, y);
+  });
+}
+
+function drawGameOver(elapsedMs) {
+  const progress = Math.min(1, elapsedMs / GAME_OVER_ANIM_MS);
+  const centerY = boardPx / 2;
+  const maxBand = boardPx / 2;
+  const band = Math.min(maxBand, progress * (boardPx * 0.65));
+  const pulse = Math.floor(Date.now() / 140) % 2 === 0;
+
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, boardPx, Math.max(0, centerY - band));
+  ctx.fillRect(0, Math.min(boardPx, centerY + band), boardPx, boardPx - (centerY + band));
+
+  ctx.fillStyle = pulse ? theme.food : theme.accent;
+  ctx.font = `bold ${Math.round(boardPx * 0.08)}px Courier New`;
+  ctx.textAlign = 'center';
+  ctx.fillText('GAME OVER', boardPx / 2, centerY - 26);
 
   ctx.fillStyle = theme.text;
-  ctx.font = `bold ${Math.round(boardPx * 0.036)}px Courier New`;
-  ctx.fillText('GAME SAVED', boardPx / 2, boardPx / 2 + 18);
+  ctx.font = `bold ${Math.round(boardPx * 0.03)}px Courier New`;
+  ctx.fillText('SAVING SCORE...', boardPx / 2, centerY + 8);
+
+  const remaining = Math.max(0, Math.ceil((GAME_OVER_ANIM_MS - elapsedMs) / 1000));
+  ctx.fillStyle = theme.snakeHead;
+  ctx.font = `${Math.round(boardPx * 0.028)}px Courier New`;
+  ctx.fillText(`RETURNING TO START IN ${remaining}`, boardPx / 2, centerY + 38);
 }
 
 function drawPausedOverlay() {
@@ -388,7 +444,7 @@ function render() {
   }
 
   if (gameOver) {
-    drawGameOver();
+    drawGameOver(Date.now() - gameOverAt);
   }
 }
 
@@ -399,15 +455,15 @@ function handleStartEnd() {
 }
 
 function renderLoop() {
+  if (gameOver && gameOverAt > 0 && Date.now() - gameOverAt >= GAME_OVER_ANIM_MS) {
+    returnToStartScreen();
+  }
   render();
   requestAnimationFrame(renderLoop);
 }
 
 function handleTouchStart(event) {
   if (!event.changedTouches[0]) {
-    return;
-  }
-  if (event.target.closest && event.target.closest('.btn')) {
     return;
   }
   event.preventDefault();
@@ -508,7 +564,6 @@ function togglePause() {
 function resetScores() {
   topScores = [];
   saveScores();
-  renderLeaderboard();
   updateHud();
   statusLabel.textContent = 'Scores reset';
 }
@@ -539,7 +594,7 @@ function attachControls() {
   pauseBtn.addEventListener('click', togglePause);
   resetBtn.addEventListener('click', resetScores);
 
-  const touchArea = card || canvas;
+  const touchArea = swipeZone || card || canvas;
   touchArea.addEventListener('touchstart', handleTouchStart, { passive: false });
   touchArea.addEventListener('touchmove', handleTouchMove, { passive: false });
   touchArea.addEventListener('touchend', handleTouchEnd, { passive: false });
@@ -551,7 +606,6 @@ function attachControls() {
 
 function init() {
   topScores = loadScores();
-  renderLeaderboard();
   updateHud();
   syncCenterStartButton();
   attachControls();

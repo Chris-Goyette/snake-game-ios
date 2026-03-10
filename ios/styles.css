@@ -146,31 +146,31 @@ body {
   border-color: #fdd95f;
 }
 
-.scores {
+.swipe-zone {
   margin-top: 12px;
   background: #0e1630;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 8px 12px;
   text-align: center;
+  min-height: 124px;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  touch-action: none;
 }
 
-.scores h2 {
-  margin: 0 0 8px;
+.swipe-zone h2 {
+  margin: 0;
   font-size: 14px;
   color: var(--accent);
   text-align: center;
 }
 
-#leaderboard {
+.swipe-zone p {
   margin: 0;
-  padding: 0;
-  list-style: none;
-  min-height: 124px;
-}
-
-#leaderboard li {
-  margin: 4px 0;
+  color: var(--head);
+  font-size: 13px;
   text-align: center;
 }
 
