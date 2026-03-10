@@ -91,7 +91,7 @@ body {
 .canvas-start {
   position: absolute;
   left: 50%;
-  top: 53%;
+  top: 47%;
   transform: translate(-50%, -50%);
   border: 2px solid var(--head);
   border-radius: 10px;
