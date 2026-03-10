@@ -23,6 +23,7 @@ const startBtn = document.getElementById('startBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const restartBtn = document.getElementById('restartBtn');
 const resetBtn = document.getElementById('resetBtn');
+const muteBtn = document.getElementById('muteBtn');
 const swipeZone = document.getElementById('swipeZone');
 const card = document.querySelector('.card');
 
@@ -40,6 +41,8 @@ let audioMaster = null;
 let audioTimer = null;
 let currentTrack = 'none';
 let audioUnlocked = false;
+let audioMuted = false;
+let pendingTopScore = null;
 
 function syncCanvasStartButton() {
   if (!canvasStartBtn) {
@@ -64,8 +67,15 @@ function ensureAudio() {
   }
   audioCtx = new Ctx();
   audioMaster = audioCtx.createGain();
-  audioMaster.gain.value = 0.045;
+  audioMaster.gain.value = audioMuted ? 0.00001 : 0.045;
   audioMaster.connect(audioCtx.destination);
+}
+
+function syncMuteButton() {
+  if (!muteBtn) {
+    return;
+  }
+  muteBtn.textContent = audioMuted ? 'Sound Off' : 'Sound On';
 }
 
 async function unlockAudio() {
@@ -182,6 +192,15 @@ function syncMusicState() {
   }
   stopTrack();
   currentTrack = 'none';
+}
+
+function setMuted(nextMuted) {
+  audioMuted = nextMuted;
+  ensureAudio();
+  if (audioMaster) {
+    audioMaster.gain.value = audioMuted ? 0.00001 : 0.045;
+  }
+  syncMuteButton();
 }
 
 function toDirection(input) {
@@ -328,6 +347,7 @@ function startGame() {
   pauseBtn.textContent = 'Pause';
   statusLabel.textContent = 'Swipe in control pad to steer';
   updateHud();
+  pendingTopScore = null;
 
   ticker = setInterval(() => {
     if (running && !paused && !gameOver) {
@@ -346,8 +366,8 @@ function endGame() {
   gameOverAt = Date.now();
   pauseBtn.textContent = 'Pause';
   statusLabel.textContent = 'Game Over...';
+  pendingTopScore = state ? state.score : null;
   updateHud();
-  submitTopScore(state.score);
   syncCanvasStartButton();
   syncMusicState();
 }
@@ -358,6 +378,7 @@ function returnToStartScreen() {
   gameOver = false;
   paused = false;
   gameOverAt = 0;
+  pendingTopScore = null;
   pauseBtn.textContent = 'Pause';
   statusLabel.textContent = 'Press Start to Play';
   updateHud();
@@ -582,6 +603,9 @@ function handleStartEnd() {
 
 function renderLoop() {
   if (gameOver && gameOverAt > 0 && Date.now() - gameOverAt >= GAME_OVER_ANIM_MS) {
+    if (pendingTopScore !== null) {
+      submitTopScore(pendingTopScore);
+    }
     returnToStartScreen();
   }
   render();
@@ -712,6 +736,9 @@ function attachControls() {
   restartBtn.addEventListener('click', startGame);
   pauseBtn.addEventListener('click', togglePause);
   resetBtn.addEventListener('click', resetScores);
+  muteBtn.addEventListener('click', () => {
+    setMuted(!audioMuted);
+  });
 
   const touchArea = swipeZone || card || canvas;
   touchArea.addEventListener('touchstart', handleTouchStart, { passive: false });
@@ -737,6 +764,7 @@ function init() {
   topScores = loadScores();
   updateHud();
   syncCanvasStartButton();
+  syncMuteButton();
   attachControls();
   fitCanvas();
   syncMusicState();

@@ -59,11 +59,22 @@ body {
 }
 
 .hud {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
   font-weight: 700;
+}
+
+.hud-btn {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 6px 8px;
+  font: 700 11px/1 "Courier New", Courier, monospace;
+  background: var(--panel);
+  color: var(--head);
+  cursor: pointer;
 }
 
 .status {
