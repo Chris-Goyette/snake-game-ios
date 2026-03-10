@@ -42,8 +42,10 @@ function syncCanvasStartButton() {
   }
   if (!state && !running && !gameOver) {
     canvasStartBtn.classList.remove('hidden');
+    canvasStartBtn.style.display = '';
   } else {
     canvasStartBtn.classList.add('hidden');
+    canvasStartBtn.style.display = 'none';
   }
 }
 
