@@ -148,3 +148,39 @@ The final result reflects rapid prototyping plus continuous polish through human
 ## Author
 
 Chris Goyette
+
+## iOS version (touch playable on iPhone)
+
+This repo now includes a touch-first web version under `ios/` that keeps the same Snake rules and score board.
+
+How to run:
+
+1. Open terminal to the project root.
+2. Start a local server from the iOS folder:
+
+```sh
+cd /Users/cybr/clawd-bots/snake-game/ios
+python3 -m http.server 8000
+```
+
+3. On your iPhone, open Safari to `http://<your-pc-ip>:8000` while on the same Wi-Fi.
+4. Tap **Start** and play with:
+   - Touch swipes on the game board.
+   - On-screen arrows.
+   - External keyboard support (iOS): arrows/WASD, Space pause.
+5. To install as a standalone app-like icon, use Safari menu → Add to Home Screen.
+
+## Publish for friends and family (no local server needed)
+
+This repo includes a GitHub Actions workflow at:
+`/.github/workflows/deploy-ios-pages.yml`
+
+It deploys `/ios` to GitHub Pages automatically on push to `main` or `master`.
+
+Steps:
+
+1. Push this project to a repository you own (or a fork where you have write access).
+2. In GitHub repo settings, open `Pages` and set source to `GitHub Actions`.
+3. Push any change under `ios/`.
+4. After the workflow finishes, share your public Pages URL:
+   `https://<your-github-username>.github.io/<repo-name>/`

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, height=device-height, initial-scale=1, viewport-fit=cover, user-scalable=no"
+    />
+    <title>Snake by Chris Goyette</title>
+    <meta name="description" content="Retro-style Snake game, optimized for iPhone." />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="screen">
+      <div class="card">
+        <header class="hud">
+          <div>Score: <span id="score">0</span></div>
+          <div>High Score: <span id="highScore">0</span></div>
+        </header>
+
+        <p id="status" class="status">Press Start to Play</p>
+
+        <div id="gameWrap" class="game-wrap">
+          <canvas id="board" width="480" height="480" aria-label="Snake game board"></canvas>
+          <div id="overlay" class="overlay hidden" aria-hidden="true"></div>
+        </div>
+
+        <section class="action-row">
+          <button id="startBtn" class="btn">Start</button>
+          <button id="pauseBtn" class="btn">Pause</button>
+          <button id="restartBtn" class="btn">Restart</button>
+          <button id="resetBtn" class="btn warn">Reset Scores</button>
+        </section>
+
+        <section class="action-row compact" aria-label="Touch controls">
+          <button data-dir="up" class="btn dir">↑</button>
+          <button data-dir="left" class="btn dir">←</button>
+          <button data-dir="down" class="btn dir">↓</button>
+          <button data-dir="right" class="btn dir">→</button>
+        </section>
+
+        <section class="scores">
+          <h2>Top 5 Leaderboard</h2>
+          <ol id="leaderboard"></ol>
+        </section>
+      </div>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

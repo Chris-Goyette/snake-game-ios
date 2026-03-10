@@ -1,0 +1,10 @@
+{
+  "name": "Snake by Chris Goyette",
+  "short_name": "Snake",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "description": "Retro touch-first Snake game for iPhone.",
+  "orientation": "portrait-primary"
+}
