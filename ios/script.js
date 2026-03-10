@@ -2,6 +2,7 @@ const BOARD_SIZE = 20;
 const TICK_MS = 120;
 const STORAGE_KEY = 'snake_ios_top_scores_v1';
 const GAME_OVER_ANIM_MS = 5000;
+const GLOBAL_SCORES_TABLE = 'snake_scores';
 
 const theme = {
   background: '#0b1020',
@@ -53,6 +54,7 @@ let runStartHighScore = 0;
 let runTopFiveThreshold = 0;
 let confettiTop5Triggered = false;
 let confettiHighTriggered = false;
+let backendClient = null;
 
 function syncCanvasStartButton() {
   if (!canvasStartBtn) {
@@ -65,6 +67,66 @@ function syncCanvasStartButton() {
     canvasStartBtn.classList.add('hidden');
     canvasStartBtn.style.display = 'none';
   }
+}
+
+function getBackendConfig() {
+  const cfg = window.SNAKE_BACKEND_CONFIG || {};
+  return {
+    supabaseUrl: typeof cfg.supabaseUrl === 'string' ? cfg.supabaseUrl.trim() : '',
+    supabaseAnonKey: typeof cfg.supabaseAnonKey === 'string' ? cfg.supabaseAnonKey.trim() : '',
+  };
+}
+
+function isBackendEnabled() {
+  const cfg = getBackendConfig();
+  return Boolean(cfg.supabaseUrl && cfg.supabaseAnonKey && window.supabase);
+}
+
+function getBackendClient() {
+  if (backendClient) {
+    return backendClient;
+  }
+  if (!isBackendEnabled()) {
+    return null;
+  }
+  const cfg = getBackendConfig();
+  backendClient = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+  return backendClient;
+}
+
+async function fetchGlobalTopScores() {
+  const client = getBackendClient();
+  if (!client) {
+    return null;
+  }
+  const { data, error } = await client
+    .from(GLOBAL_SCORES_TABLE)
+    .select('name,score')
+    .order('score', { ascending: false })
+    .order('created_at', { ascending: true })
+    .limit(5);
+  if (error || !Array.isArray(data)) {
+    return null;
+  }
+  return data
+    .map((entry) => ({
+      name: String(entry.name || 'PLAYER').trim().slice(0, 12).toUpperCase() || 'PLAYER',
+      score: Math.max(0, Math.floor(Number(entry.score) || 0)),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
+}
+
+async function pushGlobalScore(name, score) {
+  const client = getBackendClient();
+  if (!client) {
+    return false;
+  }
+  const { error } = await client.from(GLOBAL_SCORES_TABLE).insert({
+    name,
+    score,
+  });
+  return !error;
 }
 
 function ensureAudio() {
@@ -373,6 +435,18 @@ function saveScores() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(topScores.slice(0, 5)));
 }
 
+async function refreshTopScores() {
+  const global = await fetchGlobalTopScores();
+  if (global) {
+    topScores = global;
+    saveScores();
+    updateHud();
+    return;
+  }
+  topScores = loadScores();
+  updateHud();
+}
+
 function currentHighScore() {
   return topScores[0]?.score ?? 0;
 }
@@ -392,7 +466,7 @@ function isTopFive(score) {
   return score > topScores[topScores.length - 1].score;
 }
 
-function submitTopScore(score) {
+async function submitTopScore(score) {
   if (!isTopFive(score)) {
     return;
   }
@@ -415,6 +489,12 @@ function submitTopScore(score) {
 
   topScores = topScores.sort((a, b) => b.score - a.score).slice(0, 5);
   saveScores();
+  await pushGlobalScore(name, score);
+  const global = await fetchGlobalTopScores();
+  if (global) {
+    topScores = global;
+    saveScores();
+  }
   updateHud();
   syncCanvasStartButton();
 }
@@ -557,6 +637,7 @@ function returnToStartScreen() {
   updateHud();
   syncCanvasStartButton();
   forceMenuMusicStart();
+  void refreshTopScores();
 }
 
 function step() {
@@ -787,7 +868,9 @@ function handleStartEnd() {
 function renderLoop() {
   if (gameOver && gameOverAt > 0 && Date.now() - gameOverAt >= GAME_OVER_ANIM_MS) {
     if (pendingTopScore !== null) {
-      submitTopScore(pendingTopScore);
+      const scoreToSubmit = pendingTopScore;
+      pendingTopScore = null;
+      void submitTopScore(scoreToSubmit);
     }
     returnToStartScreen();
   }
@@ -956,10 +1039,11 @@ function attachControls() {
   document.addEventListener('keydown', unlockOnce);
 }
 
-function init() {
+async function init() {
   syncViewportHeight();
   topScores = loadScores();
   updateHud();
+  await refreshTopScores();
   syncCanvasStartButton();
   syncMuteButton();
   attachControls();
@@ -969,4 +1053,4 @@ function init() {
   renderLoop();
 }
 
-init();
+void init();
