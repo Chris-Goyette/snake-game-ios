@@ -23,23 +23,23 @@
 
         <div id="gameWrap" class="game-wrap">
           <canvas id="board" width="480" height="480" aria-label="Snake game board"></canvas>
-          <button id="centerStartBtn" class="center-start">START GAME</button>
           <div id="overlay" class="overlay hidden" aria-hidden="true"></div>
         </div>
 
         <section class="action-row">
+          <button id="startBtn" class="btn">Start</button>
           <button id="pauseBtn" class="btn">Pause</button>
           <button id="restartBtn" class="btn">Restart</button>
-          <button id="resetBtn" class="btn warn">Reset Scores</button>
+          <button id="resetBtn" class="btn">Reset Scores</button>
         </section>
 
         <section id="swipeZone" class="swipe-zone" aria-label="Swipe control zone">
-          <h2>Swipe Control Pad</h2>
-          <p>Swipe here to steer the snake.</p>
+          <p class="swipe-hint">SWIPE HERE</p>
+          <p class="swipe-arrows">← ↑ ↓ →</p>
         </section>
       </div>
     </main>
 
-    <script src="script.js?v=7"></script>
+    <script src="script.js?v=8"></script>
   </body>
 </html>

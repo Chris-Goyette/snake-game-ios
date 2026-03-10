@@ -36,11 +36,12 @@ body {
   width: 100vw;
   height: 100dvh;
   touch-action: none;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  padding: 0;
 }
 
 .screen {
-  width: min(96vw, 560px);
+  width: min(calc(100vw - 16px - env(safe-area-inset-left) - env(safe-area-inset-right)), 560px);
+  margin: 0 auto;
 }
 
 .card {
@@ -82,25 +83,6 @@ body {
   display: block;
 }
 
-.center-start {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  border: 2px solid var(--head);
-  border-radius: 10px;
-  padding: 14px 18px;
-  font: 700 15px/1 "Courier New", Courier, monospace;
-  background: rgba(16, 32, 71, 0.95);
-  color: var(--accent);
-  cursor: pointer;
-  z-index: 3;
-}
-
-.center-start.hidden {
-  display: none;
-}
-
 .overlay {
   position: absolute;
   inset: 0;
@@ -120,7 +102,7 @@ body {
 
 .action-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   margin-top: 10px;
 }
@@ -141,37 +123,33 @@ body {
   color: #04120a;
 }
 
-.warn {
-  color: #fdd95f;
-  border-color: #fdd95f;
-}
-
 .swipe-zone {
   margin-top: 12px;
-  background: #0e1630;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 8px 12px;
+  background: #071127;
+  border: 2px solid #143366;
+  border-radius: 10px;
+  padding: 12px;
   text-align: center;
-  min-height: 124px;
+  min-height: 146px;
   display: grid;
   align-content: center;
-  gap: 8px;
+  gap: 10px;
   touch-action: none;
 }
 
-.swipe-zone h2 {
+.swipe-hint {
   margin: 0;
-  font-size: 14px;
+  font-size: 18px;
+  letter-spacing: 1px;
+  font-weight: 700;
   color: var(--accent);
-  text-align: center;
 }
 
-.swipe-zone p {
+.swipe-arrows {
   margin: 0;
   color: var(--head);
-  font-size: 13px;
-  text-align: center;
+  font-size: 24px;
+  letter-spacing: 8px;
 }
 
 @media (pointer: coarse) {

@@ -18,7 +18,7 @@ const highScoreLabel = document.getElementById('highScore');
 const statusLabel = document.getElementById('status');
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
-const centerStartBtn = document.getElementById('centerStartBtn');
+const startBtn = document.getElementById('startBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const restartBtn = document.getElementById('restartBtn');
 const resetBtn = document.getElementById('resetBtn');
@@ -34,27 +34,6 @@ let topScores = [];
 let ticker = null;
 let touchStart = null;
 let gameOverAt = 0;
-
-function syncCenterStartButton() {
-  if (!centerStartBtn) {
-    return;
-  }
-  if (!state && !running && !gameOver) {
-    centerStartBtn.textContent = 'START GAME';
-    centerStartBtn.classList.remove('hidden');
-    return;
-  }
-  if (paused) {
-    centerStartBtn.textContent = 'RESUME';
-    centerStartBtn.classList.remove('hidden');
-    return;
-  }
-  if (gameOver) {
-    centerStartBtn.classList.add('hidden');
-    return;
-  }
-  centerStartBtn.classList.add('hidden');
-}
 
 function toDirection(input) {
   switch (input) {
@@ -198,7 +177,6 @@ function startGame() {
   pauseBtn.textContent = 'Pause';
   statusLabel.textContent = 'Swipe in control pad to steer';
   updateHud();
-  syncCenterStartButton();
 
   ticker = setInterval(() => {
     if (running && !paused && !gameOver) {
@@ -217,7 +195,6 @@ function endGame() {
   pauseBtn.textContent = 'Pause';
   statusLabel.textContent = 'Game Over...';
   updateHud();
-  syncCenterStartButton();
   submitTopScore(state.score);
 }
 
@@ -230,7 +207,6 @@ function returnToStartScreen() {
   pauseBtn.textContent = 'Pause';
   statusLabel.textContent = 'Press Start to Play';
   updateHud();
-  syncCenterStartButton();
 }
 
 function step() {
@@ -558,7 +534,6 @@ function togglePause() {
   paused = !paused;
   pauseBtn.textContent = paused ? 'Resume' : 'Pause';
   statusLabel.textContent = paused ? 'PAUSED' : 'Running';
-  syncCenterStartButton();
 }
 
 function resetScores() {
@@ -581,15 +556,7 @@ function fitCanvas() {
 }
 
 function attachControls() {
-  centerStartBtn.addEventListener('click', () => {
-    if (!state && !running && !gameOver) {
-      startGame();
-      return;
-    }
-    if (paused) {
-      togglePause();
-    }
-  });
+  startBtn.addEventListener('click', startGame);
   restartBtn.addEventListener('click', startGame);
   pauseBtn.addEventListener('click', togglePause);
   resetBtn.addEventListener('click', resetScores);
@@ -607,7 +574,6 @@ function attachControls() {
 function init() {
   topScores = loadScores();
   updateHud();
-  syncCenterStartButton();
   attachControls();
   fitCanvas();
   render();
