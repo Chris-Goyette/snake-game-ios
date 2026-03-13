@@ -205,9 +205,9 @@ body {
   background: #071127;
   border: 2px solid #143366;
   border-radius: 10px;
-  padding: 18px;
+  padding: 12px;
   text-align: center;
-  min-height: 190px;
+  min-height: 176px;
   flex: 1 1 auto;
   display: grid;
   align-content: center;
@@ -217,7 +217,8 @@ body {
 
 .dpad {
   margin: 0 auto;
-  width: min(268px, 88%);
+  width: clamp(146px, 42vw, 208px);
+  max-width: calc(100% - 6px);
   aspect-ratio: 1 / 1;
   position: relative;
   border-radius: 14px;
@@ -410,10 +411,11 @@ body {
   }
 
   .swipe-zone {
-    min-height: 210px;
+    min-height: 188px;
   }
 
   .dpad {
-    width: min(268px, 88%);
+    width: clamp(152px, 44vw, 214px);
+    max-width: calc(100% - 6px);
   }
 }
