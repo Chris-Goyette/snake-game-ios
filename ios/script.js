@@ -31,6 +31,10 @@ const resetBtn = document.getElementById('resetBtn');
 const muteBtn = document.getElementById('muteBtn');
 const swipeZone = document.getElementById('swipeZone');
 const card = document.querySelector('.card');
+const dpadUp = document.getElementById('dpadUp');
+const dpadDown = document.getElementById('dpadDown');
+const dpadLeft = document.getElementById('dpadLeft');
+const dpadRight = document.getElementById('dpadRight');
 const nameModal = document.getElementById('nameModal');
 const nameForm = document.getElementById('nameForm');
 const nameInput = document.getElementById('nameInput');
@@ -698,7 +702,7 @@ function startGame() {
   confettiTop5Triggered = false;
   confettiHighTriggered = false;
   pauseBtn.textContent = 'Pause';
-  statusLabel.textContent = 'Swipe in control pad to steer';
+  statusLabel.textContent = 'Swipe anywhere to steer or tap the arrows';
   updateHud();
   pendingTopScore = null;
   startTicker(tickMsForScore(0));
@@ -1028,7 +1032,13 @@ function handleTouchStart(event) {
   if (!event.changedTouches[0]) {
     return;
   }
-  event.preventDefault();
+  if (shouldIgnoreSwipeTarget(event.target)) {
+    touchStart = null;
+    return;
+  }
+  if (event.cancelable) {
+    event.preventDefault();
+  }
   const touch = event.changedTouches[0];
   touchStart = {
     x: touch.clientX,
@@ -1037,7 +1047,12 @@ function handleTouchStart(event) {
 }
 
 function handleTouchMove(event) {
-  event.preventDefault();
+  if (!touchStart) {
+    return;
+  }
+  if (event.cancelable) {
+    event.preventDefault();
+  }
 }
 
 function preventPagePan(event) {
@@ -1127,6 +1142,27 @@ function handleKeyDown(event) {
   }
 }
 
+function shouldIgnoreSwipeTarget(target) {
+  if (!target) {
+    return false;
+  }
+  return Boolean(target.closest('button, input, textarea, select, a, .name-modal-card'));
+}
+
+function bindDpadButton(button, direction) {
+  if (!button) {
+    return;
+  }
+  const steer = (event) => {
+    if (event && event.cancelable) {
+      event.preventDefault();
+    }
+    setDirection(direction);
+  };
+  button.addEventListener('click', steer);
+  button.addEventListener('touchstart', steer, { passive: false });
+}
+
 function togglePause() {
   if (!state || gameOver) {
     statusLabel.textContent = 'Start game first.';
@@ -1169,10 +1205,14 @@ function attachControls() {
     setMuted(!audioMuted);
   });
 
-  const touchArea = swipeZone || card || canvas;
+  const touchArea = card || canvas || swipeZone;
   touchArea.addEventListener('touchstart', handleTouchStart, { passive: false });
   touchArea.addEventListener('touchmove', handleTouchMove, { passive: false });
   touchArea.addEventListener('touchend', handleTouchEnd, { passive: false });
+  bindDpadButton(dpadUp, 'up');
+  bindDpadButton(dpadDown, 'down');
+  bindDpadButton(dpadLeft, 'left');
+  bindDpadButton(dpadRight, 'right');
   document.body.addEventListener('touchmove', preventPagePan, { passive: false });
   document.addEventListener('touchmove', preventPagePan, { passive: false });
   window.addEventListener('keydown', handleKeyDown);

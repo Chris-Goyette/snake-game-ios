@@ -9,7 +9,7 @@
     <title>Snake by Chris Goyette</title>
     <meta name="description" content="Retro-style Snake game, optimized for iPhone." />
     <link rel="manifest" href="manifest.json" />
-    <link rel="stylesheet" href="styles.css?v=10" />
+    <link rel="stylesheet" href="styles.css?v=11" />
   </head>
   <body>
     <main class="screen">
@@ -35,16 +35,16 @@
           <button id="resetBtn" class="btn btn-danger">Clear Local</button>
         </section>
 
-        <section id="swipeZone" class="swipe-zone" aria-label="Swipe control zone">
-          <div class="dpad" aria-hidden="true">
+        <section id="swipeZone" class="swipe-zone" aria-label="Swipe and tap controls">
+          <div class="dpad" aria-hidden="false">
             <span></span>
-            <span class="dpad-arrow">↑</span>
+            <button id="dpadUp" class="dpad-btn dpad-arrow" type="button" aria-label="Move Up">↑</button>
             <span></span>
-            <span class="dpad-arrow">←</span>
-            <span class="dpad-center">SWIPE</span>
-            <span class="dpad-arrow">→</span>
+            <button id="dpadLeft" class="dpad-btn dpad-arrow" type="button" aria-label="Move Left">←</button>
+            <span class="dpad-center">SWIPE ANYWHERE</span>
+            <button id="dpadRight" class="dpad-btn dpad-arrow" type="button" aria-label="Move Right">→</button>
             <span></span>
-            <span class="dpad-arrow">↓</span>
+            <button id="dpadDown" class="dpad-btn dpad-arrow" type="button" aria-label="Move Down">↓</button>
             <span></span>
           </div>
         </section>
@@ -75,6 +75,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js?v=1"></script>
-    <script src="script.js?v=33"></script>
+    <script src="script.js?v=34"></script>
   </body>
 </html>

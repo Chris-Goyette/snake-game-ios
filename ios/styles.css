@@ -241,14 +241,28 @@ body {
   font-weight: 700;
 }
 
+.dpad-btn {
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  font-family: "Courier New", Courier, monospace;
+}
+
 .dpad-arrow {
   font-size: 30px;
+  color: var(--head);
 }
 
 .dpad-center {
   font-size: 13px;
   letter-spacing: 0.6px;
   color: #bfc7d8;
+}
+
+.dpad-btn:active {
+  background: var(--head);
+  color: #04120a;
+  box-shadow: inset 0 0 0 2px #0a162c;
 }
 
 .name-modal {
