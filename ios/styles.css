@@ -217,115 +217,135 @@ body {
 
 .dpad {
   margin: 0 auto;
-  width: clamp(146px, 42vw, 208px);
+  width: clamp(152px, 44vw, 196px);
   max-width: calc(100% - 6px);
   aspect-ratio: 1 / 1;
   position: relative;
-  border-radius: 14px;
-  border: 2px solid #21457b;
-  background: radial-gradient(circle at 50% 50%, #10224a 0%, #0b1736 58%, #09122a 100%);
+  border-radius: 16px;
+  background: transparent;
   overflow: hidden;
 }
 
-.dpad-arrow,
-.dpad-center {
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  border: 2px solid rgba(121, 242, 192, 0.72);
-  background: linear-gradient(180deg, #0f1f45 0%, #0a1532 100%);
-  box-shadow: inset 0 0 0 1px #1a2d5c;
-  color: var(--head);
-  font-weight: 700;
+.dpad::before,
+.dpad::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #2a3243 0%, #111827 100%);
+  box-shadow: inset 0 0 0 1px #3d465b, 0 0 0 1px #05080f;
+}
+
+.dpad::before {
+  width: 36%;
+  height: 100%;
+}
+
+.dpad::after {
+  width: 100%;
+  height: 36%;
 }
 
 .dpad-btn {
   position: absolute;
-  z-index: 2;
+  z-index: 3;
   cursor: pointer;
   user-select: none;
   touch-action: manipulation;
   font-family: "Courier New", Courier, monospace;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #dce8ff;
+  text-shadow: 0 0 2px #000;
+  display: grid;
+  place-items: center;
 }
 
 .dpad-up {
-  left: 25%;
-  top: 6%;
-  width: 50%;
-  height: 30%;
+  left: 33%;
+  top: 0;
+  width: 34%;
+  height: 40%;
 }
 
 .dpad-left {
-  left: 6%;
-  top: 25%;
-  width: 30%;
-  height: 50%;
+  left: 0;
+  top: 33%;
+  width: 40%;
+  height: 34%;
 }
 
 .dpad-right {
-  right: 6%;
-  top: 25%;
-  width: 30%;
-  height: 50%;
+  right: 0;
+  top: 33%;
+  width: 40%;
+  height: 34%;
 }
 
 .dpad-down {
-  left: 25%;
-  bottom: 6%;
-  width: 50%;
-  height: 30%;
+  left: 33%;
+  bottom: 0;
+  width: 34%;
+  height: 40%;
 }
 
 .dpad-arrow {
-  padding: 0;
+  padding: 0 0 2px;
 }
 
 .dpad-arrow span {
   display: block;
   line-height: 1;
-  font-size: 30px;
+  font-size: 26px;
   transform: translateY(-1px);
 }
 
 .dpad-left span,
 .dpad-right span {
-  font-size: 34px;
+  font-size: 30px;
 }
 
 .dpad-up span,
 .dpad-down span {
-  font-size: 32px;
+  font-size: 26px;
 }
 
 .dpad-center {
   position: absolute;
-  z-index: 1;
-  left: 34%;
-  top: 34%;
-  width: 32%;
-  height: 32%;
+  z-index: 4;
+  left: 37%;
+  top: 37%;
+  width: 26%;
+  height: 26%;
   border-radius: 999px;
-  border-color: #2a477f;
-  background: #0a1634;
-  box-shadow: inset 0 0 0 1px #1a2d5c;
-  font-size: 18px;
+  border: 1px solid #465068;
+  background: radial-gradient(circle at 35% 35%, #2b3344 0%, #171d2b 70%, #111624 100%);
+  box-shadow: inset 0 0 0 1px #0d111a;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.2px;
-  color: #bfc7d8;
+  letter-spacing: 0.8px;
+  color: #dce8ff;
   pointer-events: none;
   text-align: center;
   text-transform: uppercase;
+  display: grid;
+  place-items: center;
 }
 
 .dpad-arrow {
-  color: var(--head);
+  color: #dce8ff;
 }
 
 .dpad-btn:active {
-  background: linear-gradient(180deg, #1f5f6b 0%, #164450 100%);
-  color: #dcfff4;
-  border-color: var(--head);
-  box-shadow: inset 0 0 0 1px #082028, 0 0 0 1px rgba(121, 242, 192, 0.35);
+  background: rgba(121, 242, 192, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(121, 242, 192, 0.4);
+}
+
+.dpad-btn:active span {
+  color: var(--head);
 }
 
 .name-modal {
@@ -415,7 +435,7 @@ body {
   }
 
   .dpad {
-    width: clamp(152px, 44vw, 214px);
+    width: clamp(154px, 45vw, 204px);
     max-width: calc(100% - 6px);
   }
 }
