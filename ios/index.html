@@ -9,7 +9,7 @@
     <title>Snake by Chris Goyette</title>
     <meta name="description" content="Retro-style Snake game, optimized for iPhone." />
     <link rel="manifest" href="manifest.json" />
-    <link rel="stylesheet" href="styles.css?v=11" />
+    <link rel="stylesheet" href="styles.css?v=12" />
   </head>
   <body>
     <main class="screen">
@@ -38,13 +38,13 @@
         <section id="swipeZone" class="swipe-zone" aria-label="Swipe and tap controls">
           <div class="dpad" aria-hidden="false">
             <span></span>
-            <button id="dpadUp" class="dpad-btn dpad-arrow" type="button" aria-label="Move Up">↑</button>
+            <button id="dpadUp" class="dpad-btn dpad-arrow dpad-up" type="button" aria-label="Move Up"><span aria-hidden="true">&#9650;</span></button>
             <span></span>
-            <button id="dpadLeft" class="dpad-btn dpad-arrow" type="button" aria-label="Move Left">←</button>
+            <button id="dpadLeft" class="dpad-btn dpad-arrow dpad-left" type="button" aria-label="Move Left"><span aria-hidden="true">&#9664;</span></button>
             <span class="dpad-center">SWIPE ANYWHERE</span>
-            <button id="dpadRight" class="dpad-btn dpad-arrow" type="button" aria-label="Move Right">→</button>
+            <button id="dpadRight" class="dpad-btn dpad-arrow dpad-right" type="button" aria-label="Move Right"><span aria-hidden="true">&#9654;</span></button>
             <span></span>
-            <button id="dpadDown" class="dpad-btn dpad-arrow" type="button" aria-label="Move Down">↓</button>
+            <button id="dpadDown" class="dpad-btn dpad-arrow dpad-down" type="button" aria-label="Move Down"><span aria-hidden="true">&#9660;</span></button>
             <span></span>
           </div>
         </section>
