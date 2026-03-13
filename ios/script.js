@@ -31,6 +31,7 @@ const resetBtn = document.getElementById('resetBtn');
 const muteBtn = document.getElementById('muteBtn');
 const swipeZone = document.getElementById('swipeZone');
 const card = document.querySelector('.card');
+const dpad = document.querySelector('.dpad');
 const dpadUp = document.getElementById('dpadUp');
 const dpadDown = document.getElementById('dpadDown');
 const dpadLeft = document.getElementById('dpadLeft');
@@ -1163,6 +1164,39 @@ function bindDpadButton(button, direction) {
   button.addEventListener('touchstart', steer, { passive: false });
 }
 
+function directionFromPadPoint(clientX, clientY, rect) {
+  const relX = clientX - (rect.left + rect.width / 2);
+  const relY = clientY - (rect.top + rect.height / 2);
+  if (Math.abs(relX) >= Math.abs(relY)) {
+    return relX >= 0 ? 'right' : 'left';
+  }
+  return relY >= 0 ? 'down' : 'up';
+}
+
+function handleDpadZoneTap(event) {
+  if (!dpad) {
+    return;
+  }
+  if (event.target && event.target.closest('.dpad-btn')) {
+    return;
+  }
+  let point = null;
+  if (event.changedTouches && event.changedTouches[0]) {
+    point = event.changedTouches[0];
+  } else if (Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
+    point = event;
+  }
+  if (!point) {
+    return;
+  }
+  if (event.cancelable) {
+    event.preventDefault();
+  }
+  const rect = dpad.getBoundingClientRect();
+  const direction = directionFromPadPoint(point.clientX, point.clientY, rect);
+  setDirection(direction);
+}
+
 function togglePause() {
   if (!state || gameOver) {
     statusLabel.textContent = 'Start game first.';
@@ -1213,6 +1247,10 @@ function attachControls() {
   bindDpadButton(dpadDown, 'down');
   bindDpadButton(dpadLeft, 'left');
   bindDpadButton(dpadRight, 'right');
+  if (dpad) {
+    dpad.addEventListener('click', handleDpadZoneTap);
+    dpad.addEventListener('touchstart', handleDpadZoneTap, { passive: false });
+  }
   document.body.addEventListener('touchmove', preventPagePan, { passive: false });
   document.addEventListener('touchmove', preventPagePan, { passive: false });
   window.addEventListener('keydown', handleKeyDown);
