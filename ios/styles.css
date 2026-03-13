@@ -209,9 +209,9 @@ body {
   text-align: center;
   min-height: 176px;
   flex: 1 1 auto;
-  display: grid;
-  align-content: center;
-  justify-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   touch-action: none;
 }
 
