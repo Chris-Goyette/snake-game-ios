@@ -217,22 +217,18 @@ body {
 
 .dpad {
   margin: 0 auto;
-  width: min(252px, 82%);
+  width: min(268px, 88%);
   aspect-ratio: 1 / 1;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: 10px;
-  padding: 10px;
-  align-items: center;
-  justify-items: center;
+  position: relative;
+  border-radius: 14px;
+  border: 2px solid #21457b;
+  background: radial-gradient(circle at 50% 50%, #10224a 0%, #0b1736 58%, #09122a 100%);
+  overflow: hidden;
 }
 
 .dpad-arrow,
 .dpad-center {
-  width: 100%;
-  height: 100%;
-  border-radius: 8px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
   border: 2px solid rgba(121, 242, 192, 0.72);
@@ -243,6 +239,8 @@ body {
 }
 
 .dpad-btn {
+  position: absolute;
+  z-index: 2;
   cursor: pointer;
   user-select: none;
   touch-action: manipulation;
@@ -250,23 +248,31 @@ body {
 }
 
 .dpad-up {
-  grid-column: 1 / 4;
-  grid-row: 1;
+  left: 25%;
+  top: 6%;
+  width: 50%;
+  height: 30%;
 }
 
 .dpad-left {
-  grid-column: 1;
-  grid-row: 2;
+  left: 6%;
+  top: 25%;
+  width: 30%;
+  height: 50%;
 }
 
 .dpad-right {
-  grid-column: 3;
-  grid-row: 2;
+  right: 6%;
+  top: 25%;
+  width: 30%;
+  height: 50%;
 }
 
 .dpad-down {
-  grid-column: 1 / 4;
-  grid-row: 3;
+  left: 25%;
+  bottom: 6%;
+  width: 50%;
+  height: 30%;
 }
 
 .dpad-arrow {
@@ -282,26 +288,32 @@ body {
 
 .dpad-left span,
 .dpad-right span {
-  font-size: 30px;
+  font-size: 34px;
 }
 
 .dpad-up span,
 .dpad-down span {
-  font-size: 28px;
+  font-size: 32px;
 }
 
 .dpad-center {
-  grid-column: 2;
-  grid-row: 2;
+  position: absolute;
+  z-index: 1;
+  left: 34%;
+  top: 34%;
+  width: 32%;
+  height: 32%;
+  border-radius: 999px;
   border-color: #2a477f;
   background: #0a1634;
   box-shadow: inset 0 0 0 1px #1a2d5c;
-  font-size: 10px;
-  letter-spacing: 0.4px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
   color: #bfc7d8;
-  padding: 6px 4px;
   pointer-events: none;
   text-align: center;
+  text-transform: uppercase;
 }
 
 .dpad-arrow {
@@ -402,7 +414,6 @@ body {
   }
 
   .dpad {
-    width: min(216px, 72%);
-    gap: 10px;
+    width: min(268px, 88%);
   }
 }
