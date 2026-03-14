@@ -9,6 +9,16 @@ A polished retro-style Snake game built in Python with Tkinter, featuring a clas
 
 ---
 
+## Play Online
+
+Play the live iPhone/Android web build here:
+
+**[https://chris-goyette.github.io/snake-game-ios/ios/](https://chris-goyette.github.io/snake-game-ios/ios/)**
+
+Tip: Add it to Home Screen for an app-like experience.
+
+---
+
 ## Overview
 
 This project is a desktop Snake game focused on:
@@ -190,6 +200,15 @@ Steps:
 The iOS web game supports a shared global leaderboard via Supabase.
 If Supabase is not configured, it falls back to local browser storage.
 
+Architecture summary:
+
+- Table name: `public.snake_scores`
+- Read path: `select name, score`, ordered by score desc and created_at asc, top 5 rows.
+- Write path: insert on game over when a score qualifies for top 5.
+- Fallback behavior: if Supabase config is missing/unavailable, game reads/writes local browser storage only.
+
+Setup:
+
 1. Create a free Supabase project.
 2. In SQL Editor, run:
 
@@ -216,7 +235,20 @@ to anon
 with check (true);
 ```
 
-3. In `ios/config.js`, set:
+3. In [ios/config.js](ios/config.js), set:
    - `supabaseUrl`
    - `supabaseAnonKey`
 4. Commit and push. Once deployed, all players share the same leaderboard.
+
+Recommended table indexes:
+
+```sql
+create index if not exists idx_snake_scores_score_created_at
+on public.snake_scores (score desc, created_at asc);
+```
+
+Security notes:
+
+- Use the **anon key** only in the web client.
+- Never expose the Supabase service role key in frontend code.
+- RLS stays enabled and policies above limit anonymous access to read/insert only.
