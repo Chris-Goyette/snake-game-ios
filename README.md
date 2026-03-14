@@ -13,7 +13,7 @@ A polished retro-style Snake game built in Python with Tkinter, featuring a clas
 
 Play the live iPhone/Android web build here:
 
-**[https://chris-goyette.github.io/snake-game-ios/ios/](https://chris-goyette.github.io/snake-game-ios/ios/)**
+**[https://chris-goyette.github.io/snake-game-ios/](https://chris-goyette.github.io/snake-game-ios/)**
 
 Tip: Add it to Home Screen for an app-like experience.
 
