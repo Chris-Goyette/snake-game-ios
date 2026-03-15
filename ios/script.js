@@ -27,7 +27,6 @@ const canvasStartBtn = document.getElementById('canvasStartBtn');
 const startBtn = document.getElementById('startBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const restartBtn = document.getElementById('restartBtn');
-const resetBtn = document.getElementById('resetBtn');
 const muteBtn = document.getElementById('muteBtn');
 const swipeZone = document.getElementById('swipeZone');
 const card = document.querySelector('.card');
@@ -48,6 +47,7 @@ let running = false;
 let gameOver = false;
 let paused = false;
 let topScores = [];
+let displayScore = 0;
 let ticker = null;
 let touchStart = null;
 let gameOverAt = 0;
@@ -102,13 +102,13 @@ function startTicker(ms) {
 }
 
 function syncActionButtons() {
-  if (!startBtn || !pauseBtn || !restartBtn || !resetBtn) {
+  if (!startBtn || !pauseBtn || !restartBtn) {
     return;
   }
-  startBtn.disabled = running && !gameOver;
+  const inActiveRun = running && !gameOver;
+  startBtn.disabled = inActiveRun;
   pauseBtn.disabled = !state || gameOver;
-  restartBtn.disabled = !state && !gameOver;
-  resetBtn.disabled = running;
+  restartBtn.disabled = inActiveRun || (!state && !gameOver);
 }
 
 function setNameLimitMessage() {
@@ -560,7 +560,7 @@ function currentHighScore() {
 }
 
 function updateHud() {
-  scoreLabel.textContent = String(state?.score ?? 0);
+  scoreLabel.textContent = String(state?.score ?? displayScore);
   highScoreLabel.textContent = String(currentHighScore());
 }
 
@@ -692,6 +692,7 @@ function startGame() {
     score: 0,
   };
 
+  displayScore = 0;
   running = true;
   gameOver = false;
   paused = false;
@@ -724,6 +725,7 @@ function endGame() {
   gameOverAt = Date.now();
   pauseBtn.textContent = 'Pause';
   statusLabel.textContent = 'Game Over...';
+  displayScore = state ? state.score : displayScore;
   pendingTopScore = state ? state.score : null;
   updateHud();
   syncActionButtons();
@@ -819,6 +821,7 @@ function step() {
   if (grows) {
     playMunchSfx();
     state.score += 1;
+    displayScore = state.score;
     state.food = emptyCells(state.snake);
     const nextTickMs = tickMsForScore(state.score);
     if (nextTickMs !== activeTickMs) {
@@ -1209,14 +1212,6 @@ function togglePause() {
   syncMusicState();
 }
 
-function resetScores() {
-  topScores = [];
-  saveScores();
-  updateHud();
-  statusLabel.textContent = 'Local cache cleared';
-  void refreshTopScores();
-}
-
 function fitCanvas() {
   const width = canvas.clientWidth;
   if (!width) {
@@ -1234,7 +1229,6 @@ function attachControls() {
   canvasStartBtn.addEventListener('click', startGame);
   restartBtn.addEventListener('click', startGame);
   pauseBtn.addEventListener('click', togglePause);
-  resetBtn.addEventListener('click', resetScores);
   muteBtn.addEventListener('click', () => {
     setMuted(!audioMuted);
   });

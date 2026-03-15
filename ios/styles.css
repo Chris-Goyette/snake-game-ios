@@ -158,20 +158,24 @@ body {
 
 .action-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
   margin-top: 0;
+  align-items: stretch;
 }
 
 .btn {
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 10px 4px;
+  min-height: 44px;
+  padding: 10px 8px;
   font: 700 13px/1 "Courier New", Courier, monospace;
   background: var(--panel);
   color: var(--head);
   cursor: pointer;
   user-select: none;
+  width: 100%;
+  text-align: center;
 }
 
 .btn-primary {
@@ -183,11 +187,6 @@ body {
 .btn-secondary {
   border-color: #22437a;
   color: #a9d9ff;
-}
-
-.btn-danger {
-  border-color: #7a2733;
-  color: #ffc5c5;
 }
 
 .btn:active {
